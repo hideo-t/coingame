@@ -71,7 +71,6 @@
     }
     .tiny{font-size:12px;color:var(--muted)}
     .hr{height:1px;background:rgba(255,255,255,.08);margin:8px 0}
-    a{color:var(--blue)}
   </style>
 </head>
 <body>
@@ -91,7 +90,7 @@
   </div>
 
   <div class="grid">
-    <div class="panel">
+    <div class="panel" id="leftPanel">
       <div class="toast" id="toast"></div>
       <div class="coinArea">
         <div class="bigMoney" id="bigMoney">¥0</div>
@@ -99,7 +98,7 @@
         <div class="coinBtn" id="coinBtn" aria-label="coin">
           <div class="coinFace">COIN FACTORY</div>
         </div>
-        <div class="tiny">※ クリック後に「10倍」が出ると脳汁。</div>
+        <div class="tiny">※ オートは「秒間収入」が1以上なら必ず増えるよ。</div>
       </div>
     </div>
 
@@ -107,7 +106,7 @@
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
         <div>
           <div style="font-weight:900;font-size:18px">SHOP</div>
-          <div class="tiny">買うたびに値段が上がるよ（中毒設計）。</div>
+          <div class="tiny">買うたびに値段が上がる（中毒設計）。</div>
         </div>
         <span class="badge" id="goalBadge">次の目標：¥10,000</span>
       </div>
@@ -118,12 +117,10 @@
         <div class="card">
           <div class="left">
             <div class="title">① クリック単価UP <span class="badge" id="lvClick">Lv 1</span></div>
-            <div class="desc">1クリックの稼ぎが増える。まずこれで気持ちよさを作る。</div>
+            <div class="desc">1クリックの稼ぎが増える。</div>
             <div class="price">価格：<b id="priceClick">¥15</b> / 効果：+1</div>
           </div>
-          <div class="buyRow">
-            <button class="buy" id="buyClick">BUY</button>
-          </div>
+          <div class="buyRow"><button class="buy" id="buyClick">BUY</button></div>
         </div>
 
         <div class="card">
@@ -132,35 +129,28 @@
             <div class="desc">放置でも増える。秒間収入が増える（PPS）。</div>
             <div class="price">価格：<b id="priceAuto">¥60</b> / 効果：+1 PPS</div>
           </div>
-          <div class="buyRow">
-            <button class="buy" id="buyAuto">BUY</button>
-          </div>
+          <div class="buyRow"><button class="buy" id="buyAuto">BUY</button></div>
         </div>
 
         <div class="card">
           <div class="left">
             <div class="title">③ クリティカル改造 <span class="badge" id="lvCrit">Lv 0</span></div>
-            <div class="desc">たまに「10倍」が出る。出た瞬間が最高。</div>
-            <div class="price">価格：<b id="priceCrit">¥120</b> / 効果：+1%（最大50%）</div>
+            <div class="desc">たまに「10倍」。最大50%。</div>
+            <div class="price">価格：<b id="priceCrit">¥120</b> / 効果：+1%</div>
           </div>
-          <div class="buyRow">
-            <button class="buy" id="buyCrit">BUY</button>
-          </div>
+          <div class="buyRow"><button class="buy" id="buyCrit">BUY</button></div>
         </div>
       </div>
 
       <div class="hr"></div>
-      <div class="hint">
-        セーブ：自動（2秒ごと＋購入時）。<br>
-        コツ：最初は①→②→①→③の順が気持ちいい。
-      </div>
+      <div class="hint">セーブ：自動（2秒ごと＋購入時）。</div>
     </div>
   </div>
 </div>
 
 <script>
 (() => {
-  // ====== DOM ======
+  // DOM
   const moneyEl = document.getElementById("money");
   const bigMoneyEl = document.getElementById("bigMoney");
   const clickValueEl = document.getElementById("clickValue");
@@ -169,6 +159,7 @@
   const coinBtn = document.getElementById("coinBtn");
   const toastEl = document.getElementById("toast");
   const goalBadge = document.getElementById("goalBadge");
+  const leftPanel = document.getElementById("leftPanel");
 
   const lvClickEl = document.getElementById("lvClick");
   const lvAutoEl  = document.getElementById("lvAuto");
@@ -185,7 +176,7 @@
   const btnMute  = document.getElementById("btnMute");
   const btnReset = document.getElementById("btnReset");
 
-  // ====== Audio (WebAudio, no files) ======
+  // Audio
   let audioCtx = null;
   let muted = false;
   let audioUnlocked = false;
@@ -195,7 +186,6 @@
     if (audioCtx.state === "suspended") audioCtx.resume();
     audioUnlocked = true;
   }
-
   function beep({freq=440, dur=0.06, type="sine", gain=0.05, when=0, slide=0}={}) {
     if (muted || !audioUnlocked) return;
     ensureAudio();
@@ -212,7 +202,6 @@
     o.start(t0);
     o.stop(t0 + dur + 0.02);
   }
-
   const sfx = {
     coin(){ beep({freq: 880, dur:0.045, type:"square", gain:0.035, slide:-220}); },
     crit(){ beep({freq: 1320, dur:0.06, type:"triangle", gain:0.06}); beep({freq: 1760, dur:0.08, type:"triangle", gain:0.06, when:0.06}); },
@@ -220,15 +209,15 @@
     no(){   beep({freq: 180, dur:0.10, type:"sawtooth", gain:0.05, slide:-60}); }
   };
 
-  // ====== Game State ======
-  const KEY = "coin_factory_save_v1";
+  // State
+  const KEY = "coin_factory_save_v2";
   const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
 
   const state = {
-    money: 0,
+    money: 0,          // ★内部は小数OK
     clickValue: 1,
     pps: 0,
-    critChance: 0, // 0..0.5
+    critChance: 0,     // 0..0.5
     lvClick: 1,
     lvAuto: 0,
     lvCrit: 0,
@@ -238,24 +227,15 @@
     lastTick: performance.now()
   };
 
-  // Price growth (addictive but not insane)
-  const grow = {
-    click: 1.22,
-    auto:  1.26,
-    crit:  1.28
-  };
+  const grow = { click: 1.22, auto: 1.26, crit: 1.28 };
 
-  function yen(n){
-    // integer display
-    const v = Math.floor(n);
-    return "¥" + v.toLocaleString("ja-JP");
-  }
+  function moneyInt(){ return Math.floor(state.money + 1e-9); } // 表示/購入判定用
+  function yenInt(n){ return "¥" + Math.floor(n).toLocaleString("ja-JP"); }
+  function yenMoney(){ return "¥" + moneyInt().toLocaleString("ja-JP"); }
 
   function calcGoal(m){
-    // Next goal: 10k -> 25k -> 50k -> 100k -> 250k -> ...
-    const steps = [10000, 25000, 50000, 100000, 250000, 500000, 1000000, 2500000, 5000000, 10000000];
+    const steps = [10000,25000,50000,100000,250000,500000,1000000,2500000,5000000,10000000];
     for (const s of steps) if (m < s) return s;
-    // if beyond, next is x2
     return Math.pow(2, Math.ceil(Math.log2(m+1)));
   }
 
@@ -272,15 +252,15 @@
     el.textContent = text;
     el.style.left = x + "px";
     el.style.top  = y + "px";
-    el.style.fontSize = isCrit ? "22px" : "18px";
+    el.style.fontSize = isCrit ? "24px" : "18px";
     el.style.color = isCrit ? "var(--pink)" : "var(--gold)";
-    document.querySelector(".panel").appendChild(el);
+    leftPanel.appendChild(el);
     setTimeout(()=>el.remove(), 900);
   }
 
   function updateUI(){
-    moneyEl.textContent = state.money.toLocaleString("ja-JP");
-    bigMoneyEl.textContent = yen(state.money);
+    moneyEl.textContent = moneyInt().toLocaleString("ja-JP");
+    bigMoneyEl.textContent = yenMoney();
 
     clickValueEl.textContent = String(state.clickValue);
     ppsEl.textContent = String(state.pps);
@@ -290,21 +270,20 @@
     lvAutoEl.textContent  = "Lv " + state.lvAuto;
     lvCritEl.textContent  = "Lv " + state.lvCrit;
 
-    priceClickEl.textContent = yen(state.priceClick);
-    priceAutoEl.textContent  = yen(state.priceAuto);
-    priceCritEl.textContent  = yen(state.priceCrit);
+    priceClickEl.textContent = yenInt(state.priceClick);
+    priceAutoEl.textContent  = yenInt(state.priceAuto);
+    priceCritEl.textContent  = yenInt(state.priceCrit);
 
-    // afford highlight
-    buyClickBtn.style.opacity = (state.money >= state.priceClick) ? "1" : ".55";
-    buyAutoBtn.style.opacity  = (state.money >= state.priceAuto) ? "1" : ".55";
-    buyCritBtn.style.opacity  = (state.money >= state.priceCrit) ? "1" : ".55";
+    buyClickBtn.style.opacity = (moneyInt() >= state.priceClick) ? "1" : ".55";
+    buyAutoBtn.style.opacity  = (moneyInt() >= state.priceAuto) ? "1" : ".55";
+    buyCritBtn.style.opacity  = (moneyInt() >= state.priceCrit) ? "1" : ".55";
 
-    const g = calcGoal(state.money);
-    goalBadge.textContent = "次の目標：" + yen(g);
+    const g = calcGoal(moneyInt());
+    goalBadge.textContent = "次の目標：" + yenInt(g);
   }
 
   function save(){
-    const data = {
+    const d = {
       money: state.money,
       clickValue: state.clickValue,
       pps: state.pps,
@@ -316,7 +295,7 @@
       priceAuto: state.priceAuto,
       priceCrit: state.priceCrit
     };
-    localStorage.setItem(KEY, JSON.stringify(data));
+    localStorage.setItem(KEY, JSON.stringify(d));
   }
 
   function load(){
@@ -326,31 +305,27 @@
       const d = JSON.parse(raw);
       if (!d) return;
       Object.assign(state, d);
-      // safety
       state.critChance = clamp(state.critChance, 0, 0.5);
+      state.money = Number(state.money) || 0;
     }catch{}
   }
 
-  // ====== Core actions ======
   function addMoney(amount){
-    state.money += amount;
+    state.money += amount; // ★丸めない
     updateUI();
   }
 
   function doClick(ev){
-    // position for floating text
     const rect = coinBtn.getBoundingClientRect();
     const x = (ev?.clientX ?? (rect.left + rect.width/2));
     const y = (ev?.clientY ?? (rect.top  + rect.height/2));
 
     let gain = state.clickValue;
-
     const isCrit = Math.random() < state.critChance;
     if (isCrit) gain *= 10;
 
     addMoney(gain);
 
-    // FX
     sfx.coin();
     coinBtn.classList.remove("pulse");
     void coinBtn.offsetWidth;
@@ -358,16 +333,17 @@
 
     if (isCrit){
       sfx.crit();
-      spawnFloat("+" + yen(gain) + " !!", x, y, true);
-      toast("CRITICAL ×10!");
+      spawnFloat("CRIT +" + yenInt(gain) + "!!", x, y, true);
+      toast("CRITICAL ×10!!");
     } else {
-      spawnFloat("+" + yen(gain), x, y, false);
+      spawnFloat("+" + yenInt(gain), x, y, false);
     }
   }
 
   function buy(kind){
+    const m = moneyInt(); // ★購入判定は整数で
     if (kind === "click"){
-      if (state.money < state.priceClick) { sfx.no(); toast("お金が足りない"); return; }
+      if (m < state.priceClick) { sfx.no(); toast("お金が足りない"); return; }
       state.money -= state.priceClick;
       state.clickValue += 1;
       state.lvClick += 1;
@@ -375,7 +351,7 @@
       sfx.buy(); toast("単価UP！");
     }
     if (kind === "auto"){
-      if (state.money < state.priceAuto) { sfx.no(); toast("お金が足りない"); return; }
+      if (m < state.priceAuto) { sfx.no(); toast("お金が足りない"); return; }
       state.money -= state.priceAuto;
       state.pps += 1;
       state.lvAuto += 1;
@@ -383,7 +359,7 @@
       sfx.buy(); toast("オート機械稼働！");
     }
     if (kind === "crit"){
-      if (state.money < state.priceCrit) { sfx.no(); toast("お金が足りない"); return; }
+      if (m < state.priceCrit) { sfx.no(); toast("お金が足りない"); return; }
       if (state.critChance >= 0.5) { sfx.no(); toast("クリ率は最大"); return; }
       state.money -= state.priceCrit;
       state.critChance = clamp(state.critChance + 0.01, 0, 0.5);
@@ -395,35 +371,30 @@
     save();
   }
 
-  // ====== Passive income loop ======
+  // Passive income
   function tick(now){
     const dt = (now - state.lastTick) / 1000;
     state.lastTick = now;
+
     if (state.pps > 0){
-      state.money += state.pps * dt;
-      // integer-ish feel
-      if (state.money < 1e9) state.money = Math.round(state.money);
+      state.money += state.pps * dt; // ★小数のまま積み上がる
     }
+
     updateUI();
     requestAnimationFrame(tick);
   }
 
-  // ====== Wire up ======
+  // Events
   coinBtn.addEventListener("click", (e)=>doClick(e));
-  coinBtn.addEventListener("touchstart", (e)=>{
-    // mobile: avoid 300ms delay
-    doClick(e.touches[0]);
-  }, {passive:true});
+  coinBtn.addEventListener("touchstart", (e)=>{ doClick(e.touches[0]); }, {passive:true});
 
   buyClickBtn.addEventListener("click", ()=>buy("click"));
-  buyAutoBtn.addEventListener("click", ()=>buy("auto"));
-  buyCritBtn.addEventListener("click", ()=>buy("crit"));
+  buyAutoBtn.addEventListener("click",  ()=>buy("auto"));
+  buyCritBtn.addEventListener("click",  ()=>buy("crit"));
 
   btnStart.addEventListener("click", ()=>{
     ensureAudio();
     toast("音OK。さあ稼ごう。");
-    btnStart.textContent = "Audio: READY";
-    setTimeout(()=>{ btnStart.textContent = "Start（音有効）"; }, 900);
   });
 
   btnMute.addEventListener("click", ()=>{
@@ -441,17 +412,11 @@
     location.reload();
   });
 
-  // ====== Init ======
+  // Init
   load();
   updateUI();
-
-  // autosave
   setInterval(save, 2000);
-
-  requestAnimationFrame((t)=>{
-    state.lastTick = t;
-    requestAnimationFrame(tick);
-  });
+  requestAnimationFrame((t)=>{ state.lastTick = t; requestAnimationFrame(tick); });
 
 })();
 </script>
