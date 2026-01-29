@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>コイン工場 - Mini Clicker</title>
+  <title>コイン工場 FESTIVAL - Dopamine Clicker</title>
   <style>
     :root{
       --bg:#0b0f1a; --panel:#0d1433; --panel2:#0a1028;
-      --line:#22306a; --txt:#e8ecff; --muted:rgba(232,236,255,.75);
+      --line:#22306a; --txt:#e8ecff; --muted:rgba(232,236,255,.78);
       --gold:#ffd43b; --pink:#ff4d6d; --blue:#93b4ff;
     }
     html,body{height:100%;margin:0;background:var(--bg);color:var(--txt);
@@ -15,17 +15,54 @@
     .wrap{max-width:980px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:12px;}
     .top{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
     .stats{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .pill{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 12px;font-size:13px}
+    .pill{background:rgba(13,20,51,.75);backdrop-filter: blur(6px);
+      border:1px solid rgba(34,48,106,.85);border-radius:999px;padding:8px 12px;font-size:13px}
     .pill b{font-size:14px}
     .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     button{background:#1b2550;color:#fff;border:1px solid #2a3a7a;border-radius:12px;padding:9px 12px;cursor:pointer}
     button:active{transform:translateY(1px)}
-    button.secondary{background:transparent;border:1px solid var(--line);color:var(--txt)}
+    button.secondary{background:transparent;border:1px solid rgba(34,48,106,.95);color:var(--txt)}
     .grid{display:grid;grid-template-columns: 1.2fr .8fr; gap:12px}
     @media (max-width:860px){ .grid{grid-template-columns:1fr;} }
-    .panel{background:var(--panel2);border:1px solid var(--line);border-radius:16px;padding:14px;position:relative;overflow:hidden}
+
+    /* ====== LEFT PANEL with festival background ====== */
+    .panel{
+      border-radius:18px; padding:14px; position:relative; overflow:hidden;
+      border:1px solid rgba(34,48,106,.9);
+      background:
+        radial-gradient(1200px 600px at 10% 0%, rgba(147,180,255,.10), rgba(0,0,0,0)),
+        radial-gradient(1200px 600px at 90% 0%, rgba(255,77,109,.08), rgba(0,0,0,0)),
+        linear-gradient(180deg, rgba(10,16,40,.95), rgba(7,10,22,.95));
+      box-shadow: 0 22px 55px rgba(0,0,0,.35);
+      transform: translate3d(0,0,0);
+    }
+    .panel.right{
+      background: linear-gradient(180deg, rgba(10,16,40,.95), rgba(7,10,22,.95));
+    }
+
+    /* animated colorful glow layer (strength increases) */
+    .glow{
+      position:absolute; inset:-60px; pointer-events:none; opacity:0.0;
+      background:
+        radial-gradient(400px 220px at 15% 20%, rgba(255,212,59,.28), rgba(0,0,0,0)),
+        radial-gradient(460px 260px at 85% 25%, rgba(255,77,109,.26), rgba(0,0,0,0)),
+        radial-gradient(520px 300px at 40% 85%, rgba(147,180,255,.22), rgba(0,0,0,0)),
+        radial-gradient(520px 320px at 70% 80%, rgba(125,255,202,.18), rgba(0,0,0,0));
+      filter: blur(18px);
+      animation: drift 6s ease-in-out infinite;
+      mix-blend-mode: screen;
+    }
+    @keyframes drift{
+      0%{transform:translate(0,0) scale(1)}
+      50%{transform:translate(18px,-12px) scale(1.03)}
+      100%{transform:translate(0,0) scale(1)}
+    }
+
     .hint{font-size:13px;color:var(--muted);line-height:1.5}
     .coinArea{display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center;min-height:420px}
+    .bigMoney{font-size:44px;font-weight:900;letter-spacing:.02em;text-shadow:0 8px 22px rgba(0,0,0,.35)}
+    .tiny{font-size:12px;color:rgba(232,236,255,.72)}
+
     .coinBtn{
       width:min(340px,70vw); aspect-ratio:1/1; border-radius:999px;
       background:radial-gradient(circle at 35% 30%, #fff1a6 0%, var(--gold) 35%, #f0b429 70%, #b07a12 100%);
@@ -34,43 +71,91 @@
       cursor:pointer; position:relative;
       user-select:none; -webkit-tap-highlight-color:transparent;
       display:grid; place-items:center;
-      transition: transform .06s ease;
+      transition: transform .06s ease, filter .2s ease;
     }
     .coinBtn:active{transform:scale(.985)}
-    .coinFace{font-weight:800;letter-spacing:.04em;font-size:22px;color:#342400;text-shadow:0 2px 0 rgba(255,255,255,.35)}
-    .bigMoney{font-size:44px;font-weight:900;letter-spacing:.02em}
+    .coinFace{font-weight:900;letter-spacing:.06em;font-size:21px;color:#342400;text-shadow:0 2px 0 rgba(255,255,255,.35)}
+
+    /* juicy feedback */
     .pulse{animation:pulse .18s ease}
     @keyframes pulse{0%{transform:scale(1)} 50%{transform:scale(1.05)} 100%{transform:scale(1)}}
+
+    .shake{animation: shake .26s ease}
+    @keyframes shake{
+      0%{transform:translate(0,0)}
+      20%{transform:translate(-3px, 1px)}
+      40%{transform:translate(4px,-2px)}
+      60%{transform:translate(-2px,2px)}
+      80%{transform:translate(2px, -1px)}
+      100%{transform:translate(0,0)}
+    }
+
+    .toast{
+      position:absolute;left:12px;top:12px;
+      background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12);
+      padding:8px 10px;border-radius:12px;font-size:13px;
+      opacity:0;transform:translateY(-6px);transition:.18s;
+      backdrop-filter: blur(8px);
+    }
+    .toast.show{opacity:1;transform:translateY(0)}
+    .float{
+      position:absolute; pointer-events:none; font-weight:950;
+      text-shadow:0 2px 16px rgba(0,0,0,.45);
+      animation: floatUp .95s cubic-bezier(.12,.9,.2,1) forwards;
+      will-change: transform, opacity;
+      letter-spacing:.02em;
+    }
+    @keyframes floatUp{
+      0%{transform:translate(-50%,-8px) scale(1); opacity:1}
+      100%{transform:translate(-50%,-120px) scale(1.22); opacity:0}
+    }
+
+    /* Celebration banner */
+    .banner{
+      position:absolute; left:50%; top:28%;
+      transform:translate(-50%,-50%);
+      font-weight:1000; font-size:34px; letter-spacing:.04em;
+      padding:10px 16px;
+      border-radius:16px;
+      background:rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.14);
+      opacity:0; pointer-events:none;
+      text-align:center;
+      backdrop-filter: blur(10px);
+      text-shadow: 0 10px 28px rgba(0,0,0,.55);
+    }
+    .banner.show{animation: bannerPop 1.1s ease forwards}
+    @keyframes bannerPop{
+      0%{opacity:0; transform:translate(-50%,-60%) scale(.82)}
+      18%{opacity:1; transform:translate(-50%,-50%) scale(1.06)}
+      70%{opacity:1; transform:translate(-50%,-50%) scale(1.02)}
+      100%{opacity:0; transform:translate(-50%,-40%) scale(.98)}
+    }
+
+    /* Right shop */
     .shop{display:flex;flex-direction:column;gap:10px}
     .card{
-      background:var(--panel); border:1px solid var(--line); border-radius:14px;
+      background:rgba(13,20,51,.78); backdrop-filter: blur(8px);
+      border:1px solid rgba(34,48,106,.9); border-radius:14px;
       padding:12px; display:flex; gap:10px; align-items:center; justify-content:space-between;
     }
     .card .left{display:flex;flex-direction:column;gap:4px}
-    .title{font-weight:800}
+    .title{font-weight:900}
     .desc{font-size:12px;color:var(--muted)}
     .price{font-size:13px;color:var(--blue)}
     .buyRow{display:flex;gap:8px;align-items:center}
     .buy{white-space:nowrap}
     .badge{
-      font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid var(--line);
+      font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid rgba(34,48,106,.9);
       background:rgba(147,180,255,.12); color:var(--txt)
     }
-    .toast{position:absolute;left:12px;top:12px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12);
-      padding:8px 10px;border-radius:12px;font-size:13px;opacity:0;transform:translateY(-6px);transition:.18s}
-    .toast.show{opacity:1;transform:translateY(0)}
-    .float{
-      position:absolute; pointer-events:none; font-weight:900;
-      text-shadow:0 2px 10px rgba(0,0,0,.35);
-      animation: floatUp .85s ease forwards;
-      will-change: transform, opacity;
-    }
-    @keyframes floatUp{
-      0%{transform:translate(-50%,-10px) scale(1); opacity:1}
-      100%{transform:translate(-50%,-90px) scale(1.15); opacity:0}
-    }
-    .tiny{font-size:12px;color:var(--muted)}
     .hr{height:1px;background:rgba(255,255,255,.08);margin:8px 0}
+
+    /* Particle canvas overlay */
+    canvas.fx{
+      position:absolute; inset:0; width:100%; height:100%;
+      pointer-events:none;
+    }
   </style>
 </head>
 <body>
@@ -81,6 +166,7 @@
       <div class="pill">クリック単価：<b id="clickValue">1</b></div>
       <div class="pill">秒間収入：<b id="pps">0</b></div>
       <div class="pill">クリ率：<b id="crit">0%</b></div>
+      <div class="pill">フェスLv：<b id="festLv">0</b></div>
     </div>
     <div class="actions">
       <button id="btnStart">Start（音有効）</button>
@@ -91,21 +177,25 @@
 
   <div class="grid">
     <div class="panel" id="leftPanel">
+      <div class="glow" id="glow"></div>
+      <canvas class="fx" id="fx"></canvas>
       <div class="toast" id="toast"></div>
+      <div class="banner" id="banner"></div>
+
       <div class="coinArea">
         <div class="bigMoney" id="bigMoney">¥0</div>
-        <div class="hint">コインをクリック / タップして稼ぐ。<br>アップグレードで「稼ぐ速度」が気持ちよく増える。</div>
+        <div class="hint">クリックで稼ぐ → 買う → 世界が派手になる。<br>大台・CRITでフェスが爆発するよ。</div>
         <div class="coinBtn" id="coinBtn" aria-label="coin">
           <div class="coinFace">COIN FACTORY</div>
         </div>
-        <div class="tiny">※ オートは「秒間収入」が1以上なら必ず増えるよ。</div>
+        <div class="tiny">Tip：オートを少し入れて放置収入が出ると“戻ってきたくなる”。</div>
       </div>
     </div>
 
-    <div class="panel">
+    <div class="panel right">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
         <div>
-          <div style="font-weight:900;font-size:18px">SHOP</div>
+          <div style="font-weight:1000;font-size:18px">SHOP</div>
           <div class="tiny">買うたびに値段が上がる（中毒設計）。</div>
         </div>
         <span class="badge" id="goalBadge">次の目標：¥10,000</span>
@@ -117,7 +207,7 @@
         <div class="card">
           <div class="left">
             <div class="title">① クリック単価UP <span class="badge" id="lvClick">Lv 1</span></div>
-            <div class="desc">1クリックの稼ぎが増える。</div>
+            <div class="desc">1クリックの稼ぎが増える。体感が一番気持ちいい。</div>
             <div class="price">価格：<b id="priceClick">¥15</b> / 効果：+1</div>
           </div>
           <div class="buyRow"><button class="buy" id="buyClick">BUY</button></div>
@@ -126,7 +216,7 @@
         <div class="card">
           <div class="left">
             <div class="title">② オート機械 <span class="badge" id="lvAuto">Lv 0</span></div>
-            <div class="desc">放置でも増える。秒間収入が増える（PPS）。</div>
+            <div class="desc">放置でも増える。秒間収入（PPS）が増える。</div>
             <div class="price">価格：<b id="priceAuto">¥60</b> / 効果：+1 PPS</div>
           </div>
           <div class="buyRow"><button class="buy" id="buyAuto">BUY</button></div>
@@ -150,16 +240,21 @@
 
 <script>
 (() => {
-  // DOM
+  // ===== DOM =====
   const moneyEl = document.getElementById("money");
   const bigMoneyEl = document.getElementById("bigMoney");
   const clickValueEl = document.getElementById("clickValue");
   const ppsEl = document.getElementById("pps");
   const critEl = document.getElementById("crit");
+  const festLvEl = document.getElementById("festLv");
+
   const coinBtn = document.getElementById("coinBtn");
-  const toastEl = document.getElementById("toast");
-  const goalBadge = document.getElementById("goalBadge");
   const leftPanel = document.getElementById("leftPanel");
+  const toastEl = document.getElementById("toast");
+  const bannerEl = document.getElementById("banner");
+  const glowEl = document.getElementById("glow");
+
+  const goalBadge = document.getElementById("goalBadge");
 
   const lvClickEl = document.getElementById("lvClick");
   const lvAutoEl  = document.getElementById("lvAuto");
@@ -176,7 +271,7 @@
   const btnMute  = document.getElementById("btnMute");
   const btnReset = document.getElementById("btnReset");
 
-  // Audio
+  // ===== Audio =====
   let audioCtx = null;
   let muted = false;
   let audioUnlocked = false;
@@ -202,19 +297,24 @@
     o.start(t0);
     o.stop(t0 + dur + 0.02);
   }
+
   const sfx = {
     coin(){ beep({freq: 880, dur:0.045, type:"square", gain:0.035, slide:-220}); },
-    crit(){ beep({freq: 1320, dur:0.06, type:"triangle", gain:0.06}); beep({freq: 1760, dur:0.08, type:"triangle", gain:0.06, when:0.06}); },
-    buy(){  beep({freq: 523, dur:0.06, type:"triangle", gain:0.05}); beep({freq: 659, dur:0.08, type:"triangle", gain:0.05, when:0.07}); },
-    no(){   beep({freq: 180, dur:0.10, type:"sawtooth", gain:0.05, slide:-60}); }
+    crit(){ beep({freq: 1320, dur:0.06, type:"triangle", gain:0.06});
+            beep({freq: 1760, dur:0.08, type:"triangle", gain:0.06, when:0.06}); },
+    buy(){  beep({freq: 523, dur:0.06, type:"triangle", gain:0.05});
+            beep({freq: 659, dur:0.08, type:"triangle", gain:0.05, when:0.07}); },
+    no(){   beep({freq: 180, dur:0.10, type:"sawtooth", gain:0.05, slide:-60}); },
+    boom(){ beep({freq: 220, dur:0.12, type:"sawtooth", gain:0.06, slide:-120});
+            beep({freq: 440, dur:0.10, type:"triangle", gain:0.05, when:0.06}); }
   };
 
-  // State
-  const KEY = "coin_factory_save_v2";
+  // ===== State =====
+  const KEY = "coin_factory_festival_v1";
   const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
 
   const state = {
-    money: 0,          // ★内部は小数OK
+    money: 0,          // float internal
     clickValue: 1,
     pps: 0,
     critChance: 0,     // 0..0.5
@@ -224,12 +324,14 @@
     priceClick: 15,
     priceAuto: 60,
     priceCrit: 120,
-    lastTick: performance.now()
+    lastTick: performance.now(),
+    lastMilestone: 0,  // last celebrated threshold
+    festLv: 0          // grows with milestones/crit
   };
 
   const grow = { click: 1.22, auto: 1.26, crit: 1.28 };
 
-  function moneyInt(){ return Math.floor(state.money + 1e-9); } // 表示/購入判定用
+  function moneyInt(){ return Math.floor(state.money + 1e-9); }
   function yenInt(n){ return "¥" + Math.floor(n).toLocaleString("ja-JP"); }
   function yenMoney(){ return "¥" + moneyInt().toLocaleString("ja-JP"); }
 
@@ -239,23 +341,59 @@
     return Math.pow(2, Math.ceil(Math.log2(m+1)));
   }
 
+  // ===== UI helpers =====
   function toast(msg){
     toastEl.textContent = msg;
     toastEl.classList.add("show");
     clearTimeout(toastEl._t);
-    toastEl._t = setTimeout(()=>toastEl.classList.remove("show"), 900);
+    toastEl._t = setTimeout(()=>toastEl.classList.remove("show"), 950);
   }
-
-  function spawnFloat(text, x, y, isCrit=false){
+  function banner(msg){
+    bannerEl.textContent = msg;
+    bannerEl.classList.remove("show");
+    void bannerEl.offsetWidth;
+    bannerEl.classList.add("show");
+  }
+  function spawnFloat(text, x, y, size=18, cssColor="rgba(255,212,59,1)"){
     const el = document.createElement("div");
     el.className = "float";
     el.textContent = text;
     el.style.left = x + "px";
     el.style.top  = y + "px";
-    el.style.fontSize = isCrit ? "24px" : "18px";
-    el.style.color = isCrit ? "var(--pink)" : "var(--gold)";
+    el.style.fontSize = size + "px";
+    el.style.color = cssColor;
     leftPanel.appendChild(el);
-    setTimeout(()=>el.remove(), 900);
+    setTimeout(()=>el.remove(), 1000);
+  }
+  function addShake(strength=1){
+    // strength scales by re-triggering
+    leftPanel.classList.remove("shake");
+    void leftPanel.offsetWidth;
+    leftPanel.classList.add("shake");
+  }
+
+  // ===== Festival level (gradually more colorful) =====
+  function computeFestLv(m){
+    // 0..10 (ish)
+    const tiers = [0, 10000, 50000, 100000, 250000, 500000, 1000000, 2500000, 5000000, 10000000, 25000000];
+    let lv = 0;
+    for (let i=0;i<tiers.length;i++){
+      if (m >= tiers[i]) lv = i;
+    }
+    return lv; // 0..10
+  }
+  function applyFestivalLook(){
+    // glow opacity increases with festLv
+    const lv = state.festLv;
+    const op = clamp(0.06 + lv * 0.065, 0, 0.78);
+    glowEl.style.opacity = op.toFixed(3);
+
+    // coin brightness slightly increases
+    const bright = 1 + lv * 0.03;
+    const sat = 1 + lv * 0.05;
+    coinBtn.style.filter = `brightness(${bright.toFixed(2)}) saturate(${sat.toFixed(2)})`;
+
+    festLvEl.textContent = String(lv);
   }
 
   function updateUI(){
@@ -280,6 +418,11 @@
 
     const g = calcGoal(moneyInt());
     goalBadge.textContent = "次の目標：" + yenInt(g);
+
+    // festival level from money + bonus from recent action
+    const baseLv = computeFestLv(moneyInt());
+    state.festLv = Math.max(state.festLv, baseLv);
+    applyFestivalLook();
   }
 
   function save(){
@@ -293,11 +436,12 @@
       lvCrit: state.lvCrit,
       priceClick: state.priceClick,
       priceAuto: state.priceAuto,
-      priceCrit: state.priceCrit
+      priceCrit: state.priceCrit,
+      lastMilestone: state.lastMilestone,
+      festLv: state.festLv
     };
     localStorage.setItem(KEY, JSON.stringify(d));
   }
-
   function load(){
     const raw = localStorage.getItem(KEY);
     if (!raw) return;
@@ -307,18 +451,200 @@
       Object.assign(state, d);
       state.critChance = clamp(state.critChance, 0, 0.5);
       state.money = Number(state.money) || 0;
+      state.lastMilestone = Number(state.lastMilestone) || 0;
+      state.festLv = Number(state.festLv) || 0;
     }catch{}
   }
 
+  // ===== FX Canvas (confetti / sparks / rings) =====
+  const fx = document.getElementById("fx");
+  const fctx = fx.getContext("2d");
+  const DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+
+  function resizeFx(){
+    const r = leftPanel.getBoundingClientRect();
+    fx.width = Math.floor(r.width * DPR);
+    fx.height = Math.floor(r.height * DPR);
+  }
+  window.addEventListener("resize", resizeFx);
+
+  const particles = [];
+  const rings = [];
+
+  function rand(a,b){ return a + Math.random()*(b-a); }
+  function hsl(h,s,l,a=1){ return `hsla(${h},${s}%,${l}%,${a})`; }
+
+  function pushConfetti(burst=60){
+    const r = leftPanel.getBoundingClientRect();
+    const cx = r.width * 0.5;
+    const cy = r.height * 0.35;
+
+    const lv = state.festLv;
+    const count = Math.floor(burst * (1 + lv*0.10));
+
+    for (let i=0;i<count;i++){
+      const hue = (Math.random()*360)|0;
+      particles.push({
+        type:"confetti",
+        x: cx + rand(-40,40),
+        y: cy + rand(-20,20),
+        vx: rand(-140,140) * (0.9 + lv*0.06),
+        vy: rand(-260,-120) * (0.95 + lv*0.05),
+        g: rand(380,520),
+        life: rand(1.1, 1.8) * (0.95 + lv*0.04),
+        t: 0,
+        rot: rand(0,Math.PI*2),
+        vr: rand(-10,10),
+        w: rand(5,10),
+        h: rand(8,16),
+        color: hsl(hue, 95, 60, 0.95)
+      });
+    }
+  }
+
+  function pushSparks(x,y,amount=22, power=1){
+    const lv = state.festLv;
+    const count = Math.floor(amount * (1 + lv*0.06));
+    for (let i=0;i<count;i++){
+      const ang = rand(0, Math.PI*2);
+      const sp = rand(160, 420) * power * (0.95 + lv*0.05);
+      const hue = (40 + rand(-20, 60) + lv*6) % 360;
+      particles.push({
+        type:"spark",
+        x, y,
+        vx: Math.cos(ang)*sp,
+        vy: Math.sin(ang)*sp,
+        g: rand(480, 820),
+        life: rand(0.45, 0.75),
+        t: 0,
+        r: rand(1.2, 2.4),
+        color: hsl(hue, 98, 64, 0.95)
+      });
+    }
+  }
+
+  function pushRing(x,y){
+    const lv = state.festLv;
+    rings.push({
+      x, y,
+      r: 10,
+      vr: 520 * (0.95 + lv*0.04),
+      life: 0.55,
+      t: 0,
+      color: hsl(rand(0,360), 95, 62, 0.75)
+    });
+  }
+
+  function flash(intensity=0.25){
+    // quick overlay flash via drawing in fx (one-shot)
+    const r = leftPanel.getBoundingClientRect();
+    fctx.save();
+    fctx.scale(DPR,DPR);
+    fctx.fillStyle = `rgba(255,255,255,${intensity})`;
+    fctx.fillRect(0,0,r.width,r.height);
+    fctx.restore();
+  }
+
+  function fxLoop(now){
+    const r = leftPanel.getBoundingClientRect();
+    const w = fx.width, h = fx.height;
+
+    fctx.clearRect(0,0,w,h);
+    fctx.save();
+    fctx.scale(DPR,DPR);
+
+    const dt = Math.min(0.033, (fxLoop._last ? (now - fxLoop._last)/1000 : 0.016));
+    fxLoop._last = now;
+
+    // Rings
+    for (let i=rings.length-1;i>=0;i--){
+      const it = rings[i];
+      it.t += dt;
+      it.r += it.vr * dt;
+      const a = 1 - (it.t / it.life);
+      if (a <= 0){ rings.splice(i,1); continue; }
+      fctx.beginPath();
+      fctx.strokeStyle = it.color.replace("0.75", String(0.75*a));
+      fctx.lineWidth = 4 * a;
+      fctx.arc(it.x, it.y, it.r, 0, Math.PI*2);
+      fctx.stroke();
+    }
+
+    // Particles
+    for (let i=particles.length-1;i>=0;i--){
+      const p = particles[i];
+      p.t += dt;
+      const a = 1 - (p.t / p.life);
+      if (a <= 0){ particles.splice(i,1); continue; }
+
+      p.vy += p.g * dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+
+      if (p.type === "confetti"){
+        p.rot += p.vr * dt;
+        fctx.save();
+        fctx.translate(p.x, p.y);
+        fctx.rotate(p.rot);
+        fctx.globalAlpha = Math.max(0, a);
+        fctx.fillStyle = p.color;
+        fctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+        fctx.restore();
+      } else {
+        fctx.globalAlpha = Math.max(0, a);
+        fctx.fillStyle = p.color;
+        fctx.beginPath();
+        fctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        fctx.fill();
+      }
+    }
+
+    fctx.restore();
+    requestAnimationFrame(fxLoop);
+  }
+
+  // ===== Gameplay =====
   function addMoney(amount){
-    state.money += amount; // ★丸めない
+    state.money += amount;
     updateUI();
+  }
+
+  function celebrateMilestone(th){
+    // Upgrade festival level a bit extra (sticky)
+    state.festLv = Math.max(state.festLv, computeFestLv(th) + 1);
+
+    sfx.boom();
+    banner(`大台突破！ ${yenInt(th)} 🎉`);
+    toast("フェスティバル加速！");
+    addShake(1);
+
+    // confetti + rings
+    const rr = leftPanel.getBoundingClientRect();
+    pushConfetti(90);
+    pushRing(rr.width*0.5, rr.height*0.35);
+    pushRing(rr.width*0.5, rr.height*0.35);
+    flash(0.20);
+
+    save();
+  }
+
+  function checkMilestones(prevM, curM){
+    // milestone thresholds: 1万, 5万, 10万, 50万, 100万, 500万, 1000万...
+    const milestones = [10000,50000,100000,500000,1000000,5000000,10000000,50000000,100000000];
+    for (const th of milestones){
+      if (prevM < th && curM >= th){
+        state.lastMilestone = Math.max(state.lastMilestone, th);
+        celebrateMilestone(th);
+      }
+    }
   }
 
   function doClick(ev){
     const rect = coinBtn.getBoundingClientRect();
-    const x = (ev?.clientX ?? (rect.left + rect.width/2));
-    const y = (ev?.clientY ?? (rect.top  + rect.height/2));
+    const x = (ev?.clientX ?? (rect.left + rect.width/2)) - leftPanel.getBoundingClientRect().left;
+    const y = (ev?.clientY ?? (rect.top  + rect.height/2)) - leftPanel.getBoundingClientRect().top;
+
+    const prev = moneyInt();
 
     let gain = state.clickValue;
     const isCrit = Math.random() < state.critChance;
@@ -326,22 +652,39 @@
 
     addMoney(gain);
 
+    // normal juicy feedback
     sfx.coin();
     coinBtn.classList.remove("pulse");
     void coinBtn.offsetWidth;
     coinBtn.classList.add("pulse");
 
     if (isCrit){
+      // CRIT FESTIVAL: more sparks + flash + shake + banner
+      state.festLv = Math.min(15, state.festLv + 1); // temporary ramp
       sfx.crit();
-      spawnFloat("CRIT +" + yenInt(gain) + "!!", x, y, true);
-      toast("CRITICAL ×10!!");
+      banner(`CRITICAL ×10 !!  +${yenInt(gain)} 💥`);
+      toast("ドカン！");
+      addShake(1.2);
+      flash(0.18);
+
+      pushSparks(x, y, 34, 1.25);
+      pushRing(x, y);
+
+      spawnFloat(`+${yenInt(gain)}!!`, x, y, 26, "rgba(255,77,109,1)");
+      spawnFloat("×10", x+30, y-10, 22, "rgba(255,212,59,1)");
     } else {
-      spawnFloat("+" + yenInt(gain), x, y, false);
+      // small spark depending on festival level
+      const small = 6 + state.festLv*1.2;
+      pushSparks(x, y, small, 0.55);
+      spawnFloat("+" + yenInt(gain), x, y, 18, "rgba(255,212,59,1)");
     }
+
+    // milestone check
+    checkMilestones(prev, moneyInt());
   }
 
   function buy(kind){
-    const m = moneyInt(); // ★購入判定は整数で
+    const m = moneyInt();
     if (kind === "click"){
       if (m < state.priceClick) { sfx.no(); toast("お金が足りない"); return; }
       state.money -= state.priceClick;
@@ -373,18 +716,33 @@
 
   // Passive income
   function tick(now){
+    const prev = moneyInt();
     const dt = (now - state.lastTick) / 1000;
     state.lastTick = now;
 
     if (state.pps > 0){
-      state.money += state.pps * dt; // ★小数のまま積み上がる
+      state.money += state.pps * dt;
     }
 
-    updateUI();
+    // mild passive celebration: when festival level is high, subtle confetti sometimes
+    if (state.festLv >= 6 && Math.random() < 0.0025){
+      const rr = leftPanel.getBoundingClientRect();
+      pushSparks(rr.width*rand(0.25,0.75), rr.height*rand(0.35,0.8), 10, 0.6);
+    }
+
+    const cur = moneyInt();
+    if (cur !== prev){
+      updateUI();
+      checkMilestones(prev, cur);
+    } else {
+      // still keep UI fresh for goal badge / fest lv
+      updateUI();
+    }
+
     requestAnimationFrame(tick);
   }
 
-  // Events
+  // ===== Wire =====
   coinBtn.addEventListener("click", (e)=>doClick(e));
   coinBtn.addEventListener("touchstart", (e)=>{ doClick(e.touches[0]); }, {passive:true});
 
@@ -394,16 +752,15 @@
 
   btnStart.addEventListener("click", ()=>{
     ensureAudio();
-    toast("音OK。さあ稼ごう。");
+    toast("音OK。フェス始めよう。");
+    sfx.buy();
   });
-
   btnMute.addEventListener("click", ()=>{
     ensureAudio();
     muted = !muted;
     btnMute.textContent = `Sound: ${muted ? "OFF" : "ON"}`;
     if (!muted) beep({freq:660,dur:0.06,type:"triangle",gain:0.05});
   });
-
   btnReset.addEventListener("click", ()=>{
     ensureAudio();
     const ok = confirm("セーブも含めてリセットする？");
@@ -412,11 +769,17 @@
     location.reload();
   });
 
-  // Init
+  // ===== Init =====
   load();
   updateUI();
+  resizeFx();
   setInterval(save, 2000);
-  requestAnimationFrame((t)=>{ state.lastTick = t; requestAnimationFrame(tick); });
+
+  requestAnimationFrame((t)=>{
+    state.lastTick = t;
+    requestAnimationFrame(tick);
+  });
+  requestAnimationFrame(fxLoop);
 
 })();
 </script>
