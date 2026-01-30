@@ -56,7 +56,6 @@
     .tiny{font-size:12px;color:rgba(232,236,255,.72)}
     .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;}
 
-    /* reserve space for fortuneBar */
     .center{
       display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center;
       min-height:540px;
@@ -98,7 +97,7 @@
     .sideBtn.disabled{opacity:.55; pointer-events:none; filter:grayscale(.2);}
     .smallRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
 
-    /* Fortune Bar (別表紙) */
+    /* Fortune Bar */
     .fortuneBar{
       position:absolute;
       left:14px; right:14px; top:14px;
@@ -219,33 +218,78 @@
       padding:6px 2px 0 2px;
     }
 
-    /* Result modal */
+    /* ===== 結果モーダル（スマホ対応修正版） ===== */
     .modalBackdrop{
-      position:fixed; inset:0; background:rgba(0,0,0,.55);
-      display:none; align-items:center; justify-content:center; padding:18px;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.55);
+
+      /* 中央固定やめて、上から配置＋スクロール可能に */
+      display:none;
+      align-items:flex-start;
+      justify-content:center;
+
+      padding: max(12px, env(safe-area-inset-top)) 12px
+               max(12px, env(safe-area-inset-bottom)) 12px;
+
+      overflow:auto;
+      -webkit-overflow-scrolling:touch;
     }
     .modal{
-      width:min(820px, 100%); background:#0c122a; border:1px solid rgba(34,48,106,.95);
-      border-radius:18px; padding:16px; box-shadow:0 30px 80px rgba(0,0,0,.55);
+      width:min(820px, 100%);
+      background:#0c122a;
+      border:1px solid rgba(34,48,106,.95);
+      border-radius:18px;
+      padding:16px;
+      box-shadow:0 30px 80px rgba(0,0,0,.55);
+
+      /* 画面に収める（dvhでiPhoneのUI変動に強い） */
+      max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      display:flex;
+      flex-direction:column;
+      gap:12px;
     }
-    .modal h2{margin:0 0 8px 0; font-size:22px}
+    .modal h2{margin:0; font-size:22px}
     .resultCard{
-      background:rgba(13,20,51,.78); border:1px solid rgba(34,48,106,.9); border-radius:14px;
-      padding:14px; line-height:1.7;
+      background:rgba(13,20,51,.78);
+      border:1px solid rgba(34,48,106,.9);
+      border-radius:14px;
+      padding:14px;
+      line-height:1.7;
+
+      /* 本文だけスクロール */
+      overflow:auto;
+      -webkit-overflow-scrolling:touch;
+      flex: 1 1 auto;
+      min-height: 0;
     }
     table{width:100%;border-collapse:collapse;margin-top:10px}
     th,td{border-bottom:1px solid rgba(255,255,255,.10);padding:8px 6px;text-align:left;font-size:13px}
     th{color:rgba(232,236,255,.85)}
     .resultBig{font-size:26px;font-weight:1000}
-    .modalBtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px}
+
+    .modalBtns{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+
+      /* 下ボタンは常に見える */
+      position: sticky;
+      bottom: 0;
+      padding-top: 10px;
+      padding-bottom: max(10px, env(safe-area-inset-bottom));
+      background: linear-gradient(180deg, rgba(12,18,42,0), rgba(12,18,42,.92) 35%, rgba(12,18,42,1));
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
 
     @media print{
       body{background:#fff;color:#000}
       .wrap, .top, .grid, .panel, .actions, .stats, .hint, canvas.fx, .toast, .fortuneBar{display:none !important;}
-      .modalBackdrop{position:static; inset:auto; background:none; display:block !important; padding:0}
-      .modal{box-shadow:none; border:0; border-radius:0; padding:0}
+      .modalBackdrop{position:static; inset:auto; background:none; display:block !important; padding:0; overflow:visible}
+      .modal{box-shadow:none; border:0; border-radius:0; padding:0; max-height:none}
       .modalBtns{display:none !important;}
-      .resultCard{border:1px solid #000; background:#fff}
+      .resultCard{border:1px solid #000; background:#fff; overflow:visible}
       th,td{border-bottom:1px solid #000;color:#000}
       .badge{border:1px solid #000;background:#fff}
     }
@@ -352,9 +396,8 @@
         <div class="hr"></div>
 
         <div class="hint">
-          総合判定（5段階）：<br>
-          <b>大吉／中吉／小吉／吉／末吉</b>（獲得額で判定）<br>
-          ※ 凶・大凶が出ても、総合判定はこの5段階でまとめる
+          総合判定（5段階）：<b>大吉／中吉／小吉／吉／末吉</b><br>
+          ※ 凶・大凶が出ても、最終は5段階にまとめる
         </div>
       </div>
     </div>
@@ -362,7 +405,7 @@
 </div>
 
 <!-- Result Modal -->
-<div class="modalBackdrop" id="modalBackdrop">
+<div class="modalBackdrop" id="modalBackdrop" role="dialog" aria-modal="true">
   <div class="modal">
     <h2>結果</h2>
     <div class="resultCard">
@@ -390,7 +433,7 @@
 <script>
 (() => {
   // ===== Config =====
-  const GAME_SECONDS = 15;   // ← 15秒に修正
+  const GAME_SECONDS = 15;
   const CHART_TMAX   = 15;
 
   // ===== DOM =====
@@ -432,7 +475,7 @@
 
   // ===== Helpers =====
   const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
-  function moneyInt(){ return Math.floor(state.money + (state.money>=0?1e-9:-1e-9)); }
+  function moneyInt(){ return Math.trunc(state.money); } // マイナス対応でtrunc
   function fmtYen(n){
     const abs = Math.floor(Math.abs(n));
     const s = "¥" + abs.toLocaleString("ja-JP");
@@ -442,6 +485,16 @@
     const abs = Math.floor(Math.abs(n));
     const s = abs.toLocaleString("ja-JP");
     return n < 0 ? ("-" + s) : ("+" + s);
+  }
+
+  // ===== Modal open/close (scroll lock) =====
+  function openModal(){
+    modalBackdrop.style.display = "flex";
+    document.body.style.overflow = "hidden"; // 背面スクロール停止
+  }
+  function closeModal(){
+    modalBackdrop.style.display = "none";
+    document.body.style.overflow = "";       // 復帰
   }
 
   // ===== Audio =====
@@ -618,7 +671,8 @@
 
     let line1 = "";
     if (typeof delta === "number"){
-      line1 = `${delta>=0?"+":"-"}${fmtYen(Math.abs(delta))}`;
+      const abs = Math.abs(delta);
+      line1 = `${delta>=0?"+":"-"}${fmtYen(abs)}`;
     }
     fortuneDelta.innerHTML = `${line1}${infoLine ? "<br>"+infoLine : ""}`;
 
@@ -684,18 +738,21 @@
     const target = 380;
     const dist = Math.abs(mean - target);
     let speedScore = 1 - clamp(dist/420, 0, 1);
+
     const tooFast = mean < 160 ? (160 - mean)/120 : 0;
     speedScore = speedScore - clamp(tooFast, 0, 1);
+
     const stabilityScore = 1 - clamp(sd/220, 0, 1);
     const last = ms[n-1];
     const spamPenalty = last < 120 ? 0.9 : (last < 160 ? 0.55 : 0);
 
     let score01 = 0.55*speedScore + 0.45*stabilityScore;
     score01 = score01 - spamPenalty;
+
     return clamp((score01*2 - 1), -1, 1);
   }
 
-  // ===== State (所持金マイナスOK) =====
+  // ===== State =====
   const state = {
     startMoney: 10000,
     money: 10000,
@@ -777,7 +834,7 @@
   const chart = document.getElementById("moneyChart");
   const cctx = chart.getContext("2d");
   const chartDPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-  let chartData = []; // {t, v}
+  let chartData = [];
   let gameStartPerf = 0;
 
   if (!CanvasRenderingContext2D.prototype.roundRect) {
@@ -817,7 +874,7 @@
     if (minV === maxV) { minV -= 100; maxV += 100; }
     const range = maxV - minV;
     const pad = Math.max(120, range * 0.12);
-    return {min: minV - pad, max: maxV + pad}; // ← マイナスあり前提で0クランプしない
+    return {min: minV - pad, max: maxV + pad};
   }
 
   function drawChart(){
@@ -856,12 +913,11 @@
     }
 
     // Y labels
-    const fmt = (n)=> fmtYen(n);
     cctx.fillStyle = "rgba(232,236,255,.55)";
     cctx.font = "12px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace";
-    cctx.fillText(fmt(maxV), 6, y0 + 10);
-    cctx.fillText(fmt((minV+maxV)/2), 6, (y0+y1)/2 + 5);
-    cctx.fillText(fmt(minV), 6, y1);
+    cctx.fillText(fmtYen(maxV), 6, y0 + 10);
+    cctx.fillText(fmtYen((minV+maxV)/2), 6, (y0+y1)/2 + 5);
+    cctx.fillText(fmtYen(minV), 6, y1);
 
     // line
     cctx.strokeStyle = "rgba(125,255,202,.92)";
@@ -890,8 +946,7 @@
     cctx.fillStyle = "rgba(255,255,255,.95)";
     cctx.beginPath(); cctx.arc(lx, ly, 3.5, 0, Math.PI*2); cctx.fill();
 
-    // value bubble
-    const bubble = fmt(last.v);
+    const bubble = fmtYen(last.v);
     cctx.font = "12px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace";
     const tw = cctx.measureText(bubble).width;
     const bx = Math.min(x1 - (tw+10), Math.max(x0, lx + 8));
@@ -909,7 +964,7 @@
 
   // ===== Game control =====
   function resetAll(){
-    modalBackdrop.style.display = "none";
+    closeModal();
 
     state.mode = modeSel.value;
     state.money = state.startMoney;
@@ -919,7 +974,6 @@
     state.counts = Object.fromEntries(ORDER.map(k=>[k,0]));
     state.maxMoney = state.startMoney;
     state.minMoney = state.startMoney;
-
     state.bias = 0;
     state.rhythm = 0;
     state.lastMainAt = 0;
@@ -938,6 +992,8 @@
   }
 
   function startGame(){
+    closeModal();
+
     state.mode = modeSel.value;
     state.money = state.startMoney;
     state.tLeft = GAME_SECONDS;
@@ -946,7 +1002,6 @@
     state.counts = Object.fromEntries(ORDER.map(k=>[k,0]));
     state.maxMoney = state.startMoney;
     state.minMoney = state.startMoney;
-
     state.bias = 0;
     state.rhythm = 0;
     state.lastMainAt = 0;
@@ -1000,9 +1055,7 @@
     if (state.rhythm > 0.70 && (f === "中吉" || f === "小吉") && Math.random() < 0.10) delta *= 1.25;
     if (state.rhythm < -0.65 && (f === "凶" || f === "大凶") && Math.random() < 0.12) delta *= 1.20;
 
-    // ★ 所持金マイナスOK（0で止めない）
-    const before = state.money;
-    state.money = clamp(state.money + delta, -1e12, 1e12);
+    state.money = clamp(state.money + delta, -1e12, 1e12); // マイナスOK
     state.presses++;
 
     state.maxMoney = Math.max(state.maxMoney, state.money);
@@ -1026,14 +1079,12 @@
     const color = delta < 0 ? "rgba(255,77,109,1)" : "rgba(125,255,202,1)";
     spawnFloat(text, x, y, abs >= 3000 ? 28 : 20, color);
 
-    // chart
     addChartPoint(true);
     drawChart();
-
     updateTop();
   }
 
-  // ===== Bias decay / Timer =====
+  // ===== Timer loop =====
   let last = performance.now();
   function loop(now){
     const dt = Math.min(0.05, (now - last)/1000);
@@ -1043,7 +1094,7 @@
       state.tLeft -= dt;
       decayBias(dt);
 
-      // chart moves smoothly
+      // chart moves a bit even without taps
       if (!loop._acc) loop._acc = 0;
       loop._acc += dt;
       if (loop._acc >= 0.20){
@@ -1063,16 +1114,14 @@
     requestAnimationFrame(loop);
   }
 
-  // ===== 5段階 総合判定（大吉〜末吉） =====
+  // ===== 5段階 総合判定 =====
   function judge5(net){
-    // 15秒なので少しシビア目の閾値（必要なら調整する）
     if (net >= 12000) return "大吉";
     if (net >=  6000) return "中吉";
     if (net >=     0) return "小吉";
     if (net >= -6000) return "吉";
     return "末吉";
   }
-
   function pct(n, total){
     if (!total) return "0%";
     return Math.round((n/total)*100) + "%";
@@ -1101,11 +1150,7 @@
     const final = moneyInt();
     const net = final - state.startMoney;
 
-    // ★ 5段階判定
-    const judge = judge5(net);
-    const t = decideType();
-
-    resultTitle.textContent = `総合判定：${judge}`;
+    resultTitle.textContent = `総合判定：${judge5(net)}`;
     resultSummary.innerHTML =
       `<div>開始：<b class="mono">¥10,000</b> ／ 終了：<b class="mono">${fmtYen(final)}</b> ／ 獲得：<b class="mono">${fmtNet(net)}</b> 円</div>
        <div>モード：<b>${modeLabel[state.mode]}</b> ／ 回数：<b>${total}</b> ／ 最大：<b class="mono">${fmtYen(state.maxMoney)}</b> ／ 最小：<b class="mono">${fmtYen(state.minMoney)}</b></div>
@@ -1118,18 +1163,15 @@
       tr.innerHTML = `<td><span class="badge">${name}</span></td><td>${n}</td><td>${pct(n, total)}</td>`;
       countTable.appendChild(tr);
     }
+
+    const t = decideType();
     resultTypeLine.innerHTML = `あなたのタイプ：<b>${t.type}</b> です`;
     resultAdviceLine.textContent = `注意：${t.advice}`;
-    modalBackdrop.style.display = "flex";
+
+    openModal(); // ← スマホ対応モーダル表示
   }
 
   // ===== Events =====
-  function decayBias(dt){
-    const k = 1.6;
-    state.bias *= Math.exp(-k * dt);
-    if (Math.abs(state.bias) < 0.01) state.bias = 0;
-  }
-
   btnAudio.addEventListener("click", ()=>{
     ensureAudio();
     muted = false;
@@ -1145,7 +1187,6 @@
 
   btnStart.addEventListener("click", ()=>{
     ensureAudio();
-    modalBackdrop.style.display = "none";
     startGame();
   });
 
@@ -1160,19 +1201,52 @@
   btnThanks.addEventListener("click", ()=>pressThanks());
   btnHarsh.addEventListener("click", ()=>pressHarsh());
 
-  btnClose.addEventListener("click", ()=>{ modalBackdrop.style.display="none"; });
-  btnPrint.addEventListener("click", ()=>{ window.print(); });
+  btnClose.addEventListener("click", closeModal);
+
+  btnPrint.addEventListener("click", ()=>{
+    // 印刷時は背面ロック解除しておくと安全
+    document.body.style.overflow = "";
+    window.print();
+    // 印刷後にまた戻したい場合はopenModal()でもOK
+    setTimeout(()=>{ if (modalBackdrop.style.display==="flex") document.body.style.overflow="hidden"; }, 300);
+  });
+
   btnAgain.addEventListener("click", ()=>{
     ensureAudio();
-    modalBackdrop.style.display="none";
     startGame();
   });
 
+  // backdropタップで閉じたいなら（任意）
+  modalBackdrop.addEventListener("click", (e)=>{
+    if (e.target === modalBackdrop) closeModal();
+  });
+
   // ===== Init =====
+  function resizeFx(){
+    const r = leftPanel.getBoundingClientRect();
+    fx.width = Math.floor(r.width * DPR);
+    fx.height = Math.floor(r.height * DPR);
+  }
+  function resizeChart(){
+    const rect = chart.getBoundingClientRect();
+    const cssW = Math.max(10, rect.width);
+    const cssH = 220;
+    chart.width  = Math.floor(cssW * chartDPR);
+    chart.height = Math.floor(cssH * chartDPR);
+  }
+  window.addEventListener("resize", ()=>{ resizeFx(); resizeChart(); drawChart(); });
+
+  setEnabled(false);
+  showFortuneBar("—", undefined, "偏り 0.00 / リズム 0.00");
   resizeFx();
   resizeChart();
   requestAnimationFrame(fxLoop);
-  resetAll();
+
+  // chart initial
+  chartData = [{t:0, v: moneyInt()}];
+  drawChart();
+  updateTop();
+  toast("準備OK。モード選んでスタート。");
   requestAnimationFrame(loop);
 })();
 </script>
