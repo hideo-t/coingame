@@ -3,32 +3,32 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>コイン工場 FESTIVAL - Dopamine Clicker</title>
+  <title>財運タイムアタック（1万円→30秒）</title>
   <style>
     :root{
-      --bg:#0b0f1a; --panel:#0d1433; --panel2:#0a1028;
-      --line:#22306a; --txt:#e8ecff; --muted:rgba(232,236,255,.78);
-      --gold:#ffd43b; --pink:#ff4d6d; --blue:#93b4ff;
+      --bg:#0b0f1a; --panel:#0d1433; --panel2:#0a1028; --line:#22306a;
+      --txt:#e8ecff; --muted:rgba(232,236,255,.78);
+      --gold:#ffd43b; --pink:#ff4d6d; --blue:#93b4ff; --mint:#7dffca;
     }
     html,body{height:100%;margin:0;background:var(--bg);color:var(--txt);
       font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans JP",sans-serif;}
-    .wrap{max-width:980px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:12px;}
+    .wrap{max-width:1020px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:12px;}
     .top{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
     .stats{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     .pill{background:rgba(13,20,51,.75);backdrop-filter: blur(6px);
-      border:1px solid rgba(34,48,106,.85);border-radius:999px;padding:8px 12px;font-size:13px}
+      border:1px solid rgba(34,48,106,.9);border-radius:999px;padding:8px 12px;font-size:13px}
     .pill b{font-size:14px}
     .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     button{background:#1b2550;color:#fff;border:1px solid #2a3a7a;border-radius:12px;padding:9px 12px;cursor:pointer}
     button:active{transform:translateY(1px)}
     button.secondary{background:transparent;border:1px solid rgba(34,48,106,.95);color:var(--txt)}
+    button.big{padding:14px 16px;border-radius:16px;font-weight:1000;font-size:16px;letter-spacing:.02em}
     .grid{display:grid;grid-template-columns: 1.2fr .8fr; gap:12px}
-    @media (max-width:860px){ .grid{grid-template-columns:1fr;} }
+    @media (max-width:900px){ .grid{grid-template-columns:1fr;} }
 
-    /* ====== LEFT PANEL with festival background ====== */
     .panel{
       border-radius:18px; padding:14px; position:relative; overflow:hidden;
-      border:1px solid rgba(34,48,106,.9);
+      border:1px solid rgba(34,48,106,.92);
       background:
         radial-gradient(1200px 600px at 10% 0%, rgba(147,180,255,.10), rgba(0,0,0,0)),
         radial-gradient(1200px 600px at 90% 0%, rgba(255,77,109,.08), rgba(0,0,0,0)),
@@ -36,125 +36,164 @@
       box-shadow: 0 22px 55px rgba(0,0,0,.35);
       transform: translate3d(0,0,0);
     }
-    .panel.right{
-      background: linear-gradient(180deg, rgba(10,16,40,.95), rgba(7,10,22,.95));
-    }
+    .panel.right{background:linear-gradient(180deg, rgba(10,16,40,.95), rgba(7,10,22,.95));}
 
-    /* animated colorful glow layer (strength increases) */
-    .glow{
-      position:absolute; inset:-60px; pointer-events:none; opacity:0.0;
-      background:
-        radial-gradient(400px 220px at 15% 20%, rgba(255,212,59,.28), rgba(0,0,0,0)),
-        radial-gradient(460px 260px at 85% 25%, rgba(255,77,109,.26), rgba(0,0,0,0)),
-        radial-gradient(520px 300px at 40% 85%, rgba(147,180,255,.22), rgba(0,0,0,0)),
-        radial-gradient(520px 320px at 70% 80%, rgba(125,255,202,.18), rgba(0,0,0,0));
-      filter: blur(18px);
-      animation: drift 6s ease-in-out infinite;
-      mix-blend-mode: screen;
-    }
-    @keyframes drift{
-      0%{transform:translate(0,0) scale(1)}
-      50%{transform:translate(18px,-12px) scale(1.03)}
-      100%{transform:translate(0,0) scale(1)}
-    }
-
-    .hint{font-size:13px;color:var(--muted);line-height:1.5}
-    .coinArea{display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center;min-height:420px}
-    .bigMoney{font-size:44px;font-weight:900;letter-spacing:.02em;text-shadow:0 8px 22px rgba(0,0,0,.35)}
+    .title{font-weight:1000;font-size:18px}
+    .hint{font-size:13px;color:var(--muted);line-height:1.55}
     .tiny{font-size:12px;color:rgba(232,236,255,.72)}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;}
 
-    .coinBtn{
-      width:min(340px,70vw); aspect-ratio:1/1; border-radius:999px;
-      background:radial-gradient(circle at 35% 30%, #fff1a6 0%, var(--gold) 35%, #f0b429 70%, #b07a12 100%);
+    /* ===== Center area: reserve space for fortuneBar so it never overlaps money ===== */
+    .center{
+      display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center;
+      min-height:440px;
+      padding-top:82px; /* ← fortuneBar分のスペース */
+    }
+    .moneyBig{font-size:46px;font-weight:1000;letter-spacing:.02em;text-shadow:0 10px 26px rgba(0,0,0,.45)}
+    .subRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+
+    .drawBtn{
+      width:min(380px, 78vw);
+      padding:18px 18px;
+      border-radius:22px;
+      background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.18), rgba(0,0,0,0)),
+                 linear-gradient(180deg, rgba(255,212,59,.98), rgba(240,180,41,.88));
       border:2px solid rgba(255,255,255,.22);
-      box-shadow:0 18px 40px rgba(0,0,0,.35), inset 0 8px 18px rgba(255,255,255,.25);
-      cursor:pointer; position:relative;
-      user-select:none; -webkit-tap-highlight-color:transparent;
-      display:grid; place-items:center;
+      box-shadow:0 18px 40px rgba(0,0,0,.40), inset 0 8px 18px rgba(255,255,255,.22);
+      cursor:pointer; user-select:none; -webkit-tap-highlight-color:transparent;
+      display:flex; align-items:center; justify-content:center;
+      color:#2a1f00;
       transition: transform .06s ease, filter .2s ease;
+      font-weight:1000;
+      font-size:18px;
+      letter-spacing:.04em;
     }
-    .coinBtn:active{transform:scale(.985)}
-    .coinFace{font-weight:900;letter-spacing:.06em;font-size:21px;color:#342400;text-shadow:0 2px 0 rgba(255,255,255,.35)}
+    .drawBtn:active{transform:scale(.985)}
+    .drawBtn.disabled{opacity:.55; pointer-events:none; filter:grayscale(.2);}
 
-    /* juicy feedback */
-    .pulse{animation:pulse .18s ease}
-    @keyframes pulse{0%{transform:scale(1)} 50%{transform:scale(1.05)} 100%{transform:scale(1)}}
-
-    .shake{animation: shake .26s ease}
-    @keyframes shake{
-      0%{transform:translate(0,0)}
-      20%{transform:translate(-3px, 1px)}
-      40%{transform:translate(4px,-2px)}
-      60%{transform:translate(-2px,2px)}
-      80%{transform:translate(2px, -1px)}
-      100%{transform:translate(0,0)}
+    /* ===== Fortune Bar (別表紙) ===== */
+    .fortuneBar{
+      position:absolute;
+      left:14px; right:14px; top:14px;
+      height:64px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.22);
+      backdrop-filter: blur(10px);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:10px 14px;
+      gap:12px;
+      box-shadow: 0 12px 28px rgba(0,0,0,.35);
+      z-index: 3;
     }
+    .fortuneLabel{
+      font-weight:1000;
+      font-size:26px;
+      letter-spacing:.04em;
+      text-shadow:0 10px 28px rgba(0,0,0,.55);
+      white-space:nowrap;
+    }
+    .fortuneDelta{
+      font-weight:900;
+      font-size:18px;
+      color:rgba(232,236,255,.92);
+      opacity:.95;
+      white-space:nowrap;
+    }
+
+    /* 大吉ほど赤、凶ほど暗い */
+    .fortune-daikichi { background: linear-gradient(90deg, rgba(255,60,60,.55), rgba(0,0,0,.20)); }
+    .fortune-chukichi { background: linear-gradient(90deg, rgba(255,110,60,.45), rgba(0,0,0,.20)); }
+    .fortune-shokichi { background: linear-gradient(90deg, rgba(255,170,70,.34), rgba(0,0,0,.20)); }
+    .fortune-kichi    { background: linear-gradient(90deg, rgba(230,220,120,.22), rgba(0,0,0,.20)); }
+    .fortune-suekichi { background: linear-gradient(90deg, rgba(180,190,210,.18), rgba(0,0,0,.20)); }
+    .fortune-kyo      { background: linear-gradient(90deg, rgba(90,110,130,.22), rgba(0,0,0,.28)); }
+    .fortune-daikyo   { background: linear-gradient(90deg, rgba(10,14,22,.55), rgba(0,0,0,.35)); }
+
+    .fortune-daikichi .fortuneLabel{color: rgba(255,90,90,1);}
+    .fortune-chukichi .fortuneLabel{color: rgba(255,140,90,1);}
+    .fortune-shokichi .fortuneLabel{color: rgba(255,200,120,1);}
+    .fortune-kichi    .fortuneLabel{color: rgba(255,240,170,1);}
+    .fortune-suekichi .fortuneLabel{color: rgba(210,220,240,1);}
+    .fortune-kyo      .fortuneLabel{color: rgba(170,190,215,1);}
+    .fortune-daikyo   .fortuneLabel{color: rgba(160,160,175,1);}
 
     .toast{
-      position:absolute;left:12px;top:12px;
+      position:absolute;left:14px;top:88px; /* ← fortuneBarの下に移動して被らない */
       background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12);
       padding:8px 10px;border-radius:12px;font-size:13px;
       opacity:0;transform:translateY(-6px);transition:.18s;
       backdrop-filter: blur(8px);
+      z-index: 3;
     }
     .toast.show{opacity:1;transform:translateY(0)}
+
     .float{
       position:absolute; pointer-events:none; font-weight:950;
       text-shadow:0 2px 16px rgba(0,0,0,.45);
       animation: floatUp .95s cubic-bezier(.12,.9,.2,1) forwards;
       will-change: transform, opacity;
       letter-spacing:.02em;
+      z-index: 3;
     }
     @keyframes floatUp{
       0%{transform:translate(-50%,-8px) scale(1); opacity:1}
       100%{transform:translate(-50%,-120px) scale(1.22); opacity:0}
     }
 
-    /* Celebration banner */
-    .banner{
-      position:absolute; left:50%; top:28%;
-      transform:translate(-50%,-50%);
-      font-weight:1000; font-size:34px; letter-spacing:.04em;
-      padding:10px 16px;
-      border-radius:16px;
-      background:rgba(0,0,0,.25);
-      border:1px solid rgba(255,255,255,.14);
-      opacity:0; pointer-events:none;
-      text-align:center;
-      backdrop-filter: blur(10px);
-      text-shadow: 0 10px 28px rgba(0,0,0,.55);
-    }
-    .banner.show{animation: bannerPop 1.1s ease forwards}
-    @keyframes bannerPop{
-      0%{opacity:0; transform:translate(-50%,-60%) scale(.82)}
-      18%{opacity:1; transform:translate(-50%,-50%) scale(1.06)}
-      70%{opacity:1; transform:translate(-50%,-50%) scale(1.02)}
-      100%{opacity:0; transform:translate(-50%,-40%) scale(.98)}
-    }
+    canvas.fx{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:2; }
 
-    /* Right shop */
-    .shop{display:flex;flex-direction:column;gap:10px}
     .card{
       background:rgba(13,20,51,.78); backdrop-filter: blur(8px);
       border:1px solid rgba(34,48,106,.9); border-radius:14px;
-      padding:12px; display:flex; gap:10px; align-items:center; justify-content:space-between;
+      padding:12px; display:flex; flex-direction:column; gap:10px;
     }
-    .card .left{display:flex;flex-direction:column;gap:4px}
-    .title{font-weight:900}
-    .desc{font-size:12px;color:var(--muted)}
-    .price{font-size:13px;color:var(--blue)}
-    .buyRow{display:flex;gap:8px;align-items:center}
-    .buy{white-space:nowrap}
-    .badge{
-      font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid rgba(34,48,106,.9);
-      background:rgba(147,180,255,.12); color:var(--txt)
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    select{
+      background:rgba(13,20,51,.9); color:var(--txt);
+      border:1px solid rgba(34,48,106,.95); border-radius:12px;
+      padding:10px 12px; font-size:14px; min-width:260px;
     }
     .hr{height:1px;background:rgba(255,255,255,.08);margin:8px 0}
 
-    /* Particle canvas overlay */
-    canvas.fx{
-      position:absolute; inset:0; width:100%; height:100%;
-      pointer-events:none;
+    /* Result modal */
+    .modalBackdrop{
+      position:fixed; inset:0; background:rgba(0,0,0,.55);
+      display:none; align-items:center; justify-content:center; padding:18px;
+    }
+    .modal{
+      width:min(820px, 100%); background:#0c122a; border:1px solid rgba(34,48,106,.95);
+      border-radius:18px; padding:16px; box-shadow:0 30px 80px rgba(0,0,0,.55);
+    }
+    .modal h2{margin:0 0 8px 0; font-size:22px}
+    .resultCard{
+      background:rgba(13,20,51,.78); border:1px solid rgba(34,48,106,.9); border-radius:14px;
+      padding:14px; line-height:1.7;
+    }
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{border-bottom:1px solid rgba(255,255,255,.10);padding:8px 6px;text-align:left;font-size:13px}
+    th{color:rgba(232,236,255,.85)}
+    .resultBig{font-size:26px;font-weight:1000}
+    .badge{
+      display:inline-block; padding:3px 8px; border-radius:999px;
+      border:1px solid rgba(34,48,106,.9);
+      background:rgba(147,180,255,.12);
+      font-size:12px;
+    }
+    .modalBtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px}
+
+    /* Print style */
+    @media print{
+      body{background:#fff;color:#000}
+      .wrap, .top, .grid, .panel, .actions, .stats, .hint, canvas.fx, .toast, .fortuneBar{display:none !important;}
+      .modalBackdrop{position:static; inset:auto; background:none; display:block !important; padding:0}
+      .modal{box-shadow:none; border:0; border-radius:0; padding:0}
+      .modalBtns{display:none !important;}
+      .resultCard{border:1px solid #000; background:#fff}
+      th,td{border-bottom:1px solid #000;color:#000}
+      .badge{border:1px solid #000;background:#fff}
     }
   </style>
 </head>
@@ -162,78 +201,112 @@
 <div class="wrap">
   <div class="top">
     <div class="stats">
-      <div class="pill">所持金：<b id="money">0</b></div>
-      <div class="pill">クリック単価：<b id="clickValue">1</b></div>
-      <div class="pill">秒間収入：<b id="pps">0</b></div>
-      <div class="pill">クリ率：<b id="crit">0%</b></div>
-      <div class="pill">フェスLv：<b id="festLv">0</b></div>
+      <div class="pill">残り：<b id="time">30.0</b>s</div>
+      <div class="pill">所持金：<b id="money">10,000</b>円</div>
+      <div class="pill">開始：<b class="mono">¥10,000</b></div>
+      <div class="pill">モード：<b id="modeName">未選択</b></div>
+      <div class="pill">回数：<b id="presses">0</b></div>
     </div>
     <div class="actions">
-      <button id="btnStart">Start（音有効）</button>
-      <button id="btnMute" class="secondary">Sound: ON</button>
+      <button id="btnAudio">Audio ON</button>
       <button id="btnReset" class="secondary">Reset</button>
     </div>
   </div>
 
   <div class="grid">
     <div class="panel" id="leftPanel">
-      <div class="glow" id="glow"></div>
       <canvas class="fx" id="fx"></canvas>
-      <div class="toast" id="toast"></div>
-      <div class="banner" id="banner"></div>
 
-      <div class="coinArea">
-        <div class="bigMoney" id="bigMoney">¥0</div>
-        <div class="hint">クリックで稼ぐ → 買う → 世界が派手になる。<br>大台・CRITでフェスが爆発するよ。</div>
-        <div class="coinBtn" id="coinBtn" aria-label="coin">
-          <div class="coinFace">COIN FACTORY</div>
+      <!-- 別表紙：運勢バー（重ならない） -->
+      <div class="fortuneBar fortune-kichi" id="fortuneBar">
+        <div class="fortuneLabel" id="fortuneLabel">—</div>
+        <div class="fortuneDelta mono" id="fortuneDelta"> </div>
+      </div>
+
+      <div class="toast" id="toast"></div>
+
+      <div class="center">
+        <div class="moneyBig mono" id="moneyBig">¥10,000</div>
+        <div class="hint">
+          30秒で、所持金10,000円をどれだけ増やせるか。<br>
+          「スタート」後、ボタンを押すたびに <b>大吉〜大凶</b> が出て増減するよ。
         </div>
-        <div class="tiny">Tip：オートを少し入れて放置収入が出ると“戻ってきたくなる”。</div>
+
+        <div class="drawBtn disabled" id="drawBtn">財運を引く（押す）</div>
+
+        <div class="subRow">
+          <button class="big" id="btnStart">スタート（30秒）</button>
+          <button class="big secondary" id="btnEnd">終了（結果）</button>
+        </div>
+
+        <div class="tiny">※ 連打しすぎ注意。凶が連続すると普通に削られる。</div>
       </div>
     </div>
 
     <div class="panel right">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
-        <div>
-          <div style="font-weight:1000;font-size:18px">SHOP</div>
-          <div class="tiny">買うたびに値段が上がる（中毒設計）。</div>
-        </div>
-        <span class="badge" id="goalBadge">次の目標：¥10,000</span>
-      </div>
-
-      <div class="hr"></div>
-
-      <div class="shop">
-        <div class="card">
-          <div class="left">
-            <div class="title">① クリック単価UP <span class="badge" id="lvClick">Lv 1</span></div>
-            <div class="desc">1クリックの稼ぎが増える。体感が一番気持ちいい。</div>
-            <div class="price">価格：<b id="priceClick">¥15</b> / 効果：+1</div>
-          </div>
-          <div class="buyRow"><button class="buy" id="buyClick">BUY</button></div>
+      <div class="card">
+        <div class="title">モード選択</div>
+        <div class="tiny">出現確率と増減の振れ幅が変わるよ。</div>
+        <div class="row">
+          <select id="mode">
+            <option value="steady">安定（凶が出にくい／増減は小さめ）</option>
+            <option value="balanced" selected>バランス（ほどよく増減）</option>
+            <option value="risky">博打（大吉も凶も出やすい／増減が激しい）</option>
+          </select>
         </div>
 
-        <div class="card">
-          <div class="left">
-            <div class="title">② オート機械 <span class="badge" id="lvAuto">Lv 0</span></div>
-            <div class="desc">放置でも増える。秒間収入（PPS）が増える。</div>
-            <div class="price">価格：<b id="priceAuto">¥60</b> / 効果：+1 PPS</div>
-          </div>
-          <div class="buyRow"><button class="buy" id="buyAuto">BUY</button></div>
+        <div class="hr"></div>
+
+        <div class="title">一般的な7段階</div>
+        <div class="tiny">大吉 ＞ 中吉 ＞ 小吉 ＞ 吉 ＞ 末吉 ＞ 凶 ＞ 大凶</div>
+        <div class="row">
+          <span class="badge">大吉</span>
+          <span class="badge">中吉</span>
+          <span class="badge">小吉</span>
+          <span class="badge">吉</span>
+          <span class="badge">末吉</span>
+          <span class="badge">凶</span>
+          <span class="badge">大凶</span>
         </div>
 
-        <div class="card">
-          <div class="left">
-            <div class="title">③ クリティカル改造 <span class="badge" id="lvCrit">Lv 0</span></div>
-            <div class="desc">たまに「10倍」。最大50%。</div>
-            <div class="price">価格：<b id="priceCrit">¥120</b> / 効果：+1%</div>
-          </div>
-          <div class="buyRow"><button class="buy" id="buyCrit">BUY</button></div>
+        <div class="hr"></div>
+
+        <div class="hint">
+          ルール：<br>
+          ・開始所持金：<b>10,000円</b><br>
+          ・制限時間：<b>30秒</b><br>
+          ・押すたびに結果が出て所持金が増減（0円未満にはならない）<br>
+          ・終了時：各回数＋総合判定＋獲得コイン数＋あなたのタイプ（6種）＋印刷
         </div>
       </div>
+    </div>
+  </div>
+</div>
 
-      <div class="hr"></div>
-      <div class="hint">セーブ：自動（2秒ごと＋購入時）。</div>
+<!-- Result Modal -->
+<div class="modalBackdrop" id="modalBackdrop">
+  <div class="modal">
+    <h2>結果</h2>
+    <div class="resultCard" id="resultCard">
+      <div class="resultBig" id="resultTitle">あなたの財運は —</div>
+      <div id="resultSummary" style="margin-top:6px"></div>
+
+      <table>
+        <thead>
+          <tr><th>運勢</th><th>回数</th><th>割合</th></tr>
+        </thead>
+        <tbody id="countTable"></tbody>
+      </table>
+
+      <div style="margin-top:10px" id="resultTypeLine"></div>
+      <div style="margin-top:6px" id="resultAdviceLine"></div>
+      <div style="margin-top:10px" id="resultThanks">お疲れ様でした。</div>
+    </div>
+
+    <div class="modalBtns">
+      <button class="secondary" id="btnClose">閉じる</button>
+      <button id="btnPrint">印刷</button>
+      <button id="btnAgain">もう一回</button>
     </div>
   </div>
 </div>
@@ -241,47 +314,48 @@
 <script>
 (() => {
   // ===== DOM =====
+  const timeEl = document.getElementById("time");
   const moneyEl = document.getElementById("money");
-  const bigMoneyEl = document.getElementById("bigMoney");
-  const clickValueEl = document.getElementById("clickValue");
-  const ppsEl = document.getElementById("pps");
-  const critEl = document.getElementById("crit");
-  const festLvEl = document.getElementById("festLv");
+  const moneyBigEl = document.getElementById("moneyBig");
+  const pressesEl = document.getElementById("presses");
+  const modeNameEl = document.getElementById("modeName");
 
-  const coinBtn = document.getElementById("coinBtn");
   const leftPanel = document.getElementById("leftPanel");
-  const toastEl = document.getElementById("toast");
-  const bannerEl = document.getElementById("banner");
-  const glowEl = document.getElementById("glow");
-
-  const goalBadge = document.getElementById("goalBadge");
-
-  const lvClickEl = document.getElementById("lvClick");
-  const lvAutoEl  = document.getElementById("lvAuto");
-  const lvCritEl  = document.getElementById("lvCrit");
-  const priceClickEl = document.getElementById("priceClick");
-  const priceAutoEl  = document.getElementById("priceAuto");
-  const priceCritEl  = document.getElementById("priceCrit");
-
-  const buyClickBtn = document.getElementById("buyClick");
-  const buyAutoBtn  = document.getElementById("buyAuto");
-  const buyCritBtn  = document.getElementById("buyCrit");
-
+  const drawBtn = document.getElementById("drawBtn");
   const btnStart = document.getElementById("btnStart");
-  const btnMute  = document.getElementById("btnMute");
+  const btnEnd = document.getElementById("btnEnd");
+  const btnAudio = document.getElementById("btnAudio");
   const btnReset = document.getElementById("btnReset");
+  const modeSel = document.getElementById("mode");
+
+  const toastEl = document.getElementById("toast");
+
+  // fortune bar
+  const fortuneBar = document.getElementById("fortuneBar");
+  const fortuneLabel = document.getElementById("fortuneLabel");
+  const fortuneDelta = document.getElementById("fortuneDelta");
+
+  const modalBackdrop = document.getElementById("modalBackdrop");
+  const resultTitle = document.getElementById("resultTitle");
+  const resultSummary = document.getElementById("resultSummary");
+  const countTable = document.getElementById("countTable");
+  const resultTypeLine = document.getElementById("resultTypeLine");
+  const resultAdviceLine = document.getElementById("resultAdviceLine");
+  const btnClose = document.getElementById("btnClose");
+  const btnPrint = document.getElementById("btnPrint");
+  const btnAgain = document.getElementById("btnAgain");
 
   // ===== Audio =====
   let audioCtx = null;
-  let muted = false;
   let audioUnlocked = false;
+  let muted = false;
 
-  function ensureAudio() {
+  function ensureAudio(){
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === "suspended") audioCtx.resume();
     audioUnlocked = true;
   }
-  function beep({freq=440, dur=0.06, type="sine", gain=0.05, when=0, slide=0}={}) {
+  function beep({freq=440, dur=0.06, type="sine", gain=0.05, when=0, slide=0}={}){
     if (muted || !audioUnlocked) return;
     ensureAudio();
     const t0 = audioCtx.currentTime + when;
@@ -297,48 +371,118 @@
     o.start(t0);
     o.stop(t0 + dur + 0.02);
   }
-
   const sfx = {
-    coin(){ beep({freq: 880, dur:0.045, type:"square", gain:0.035, slide:-220}); },
-    crit(){ beep({freq: 1320, dur:0.06, type:"triangle", gain:0.06});
-            beep({freq: 1760, dur:0.08, type:"triangle", gain:0.06, when:0.06}); },
-    buy(){  beep({freq: 523, dur:0.06, type:"triangle", gain:0.05});
-            beep({freq: 659, dur:0.08, type:"triangle", gain:0.05, when:0.07}); },
-    no(){   beep({freq: 180, dur:0.10, type:"sawtooth", gain:0.05, slide:-60}); },
-    boom(){ beep({freq: 220, dur:0.12, type:"sawtooth", gain:0.06, slide:-120});
-            beep({freq: 440, dur:0.10, type:"triangle", gain:0.05, when:0.06}); }
+    tap(){ beep({freq: 880, dur:0.045, type:"square", gain:0.035, slide:-220}); },
+    good(){ beep({freq: 659, dur:0.08, type:"triangle", gain:0.06}); beep({freq: 880, dur:0.10, type:"triangle", gain:0.06, when:0.08}); },
+    bad(){  beep({freq: 180, dur:0.10, type:"sawtooth", gain:0.05, slide:-60}); },
+    boom(){ beep({freq: 220, dur:0.12, type:"sawtooth", gain:0.06, slide:-120}); beep({freq: 440, dur:0.10, type:"triangle", gain:0.05, when:0.06}); },
+    end(){  beep({freq: 784, dur:0.10, type:"triangle", gain:0.06}); beep({freq: 659, dur:0.10, type:"triangle", gain:0.06, when:0.11}); beep({freq: 523, dur:0.12, type:"triangle", gain:0.06, when:0.22}); }
   };
 
-  // ===== State =====
-  const KEY = "coin_factory_festival_v1";
-  const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
+  // ===== FX Canvas =====
+  const fx = document.getElementById("fx");
+  const fctx = fx.getContext("2d");
+  const DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+  const particles = [];
+  const rings = [];
 
-  const state = {
-    money: 0,          // float internal
-    clickValue: 1,
-    pps: 0,
-    critChance: 0,     // 0..0.5
-    lvClick: 1,
-    lvAuto: 0,
-    lvCrit: 0,
-    priceClick: 15,
-    priceAuto: 60,
-    priceCrit: 120,
-    lastTick: performance.now(),
-    lastMilestone: 0,  // last celebrated threshold
-    festLv: 0          // grows with milestones/crit
-  };
+  function rand(a,b){ return a + Math.random()*(b-a); }
+  function hsl(h,s,l,a=1){ return `hsla(${h},${s}%,${l}%,${a})`; }
 
-  const grow = { click: 1.22, auto: 1.26, crit: 1.28 };
+  function resizeFx(){
+    const r = leftPanel.getBoundingClientRect();
+    fx.width = Math.floor(r.width * DPR);
+    fx.height = Math.floor(r.height * DPR);
+  }
+  window.addEventListener("resize", resizeFx);
 
-  function moneyInt(){ return Math.floor(state.money + 1e-9); }
-  function yenInt(n){ return "¥" + Math.floor(n).toLocaleString("ja-JP"); }
-  function yenMoney(){ return "¥" + moneyInt().toLocaleString("ja-JP"); }
+  function pushSparks(x,y,amount=20,power=1){
+    for (let i=0;i<amount;i++){
+      const ang = rand(0, Math.PI*2);
+      const sp = rand(160, 420)*power;
+      const hue = (Math.random()*360)|0;
+      particles.push({
+        type:"spark",
+        x,y, vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp,
+        g: rand(480, 820),
+        life: rand(0.45, 0.75),
+        t: 0,
+        r: rand(1.2, 2.6),
+        color: hsl(hue, 98, 64, 0.95)
+      });
+    }
+  }
+  function pushConfetti(burst=70){
+    const r = leftPanel.getBoundingClientRect();
+    const cx = r.width*0.5, cy=r.height*0.30;
+    for (let i=0;i<burst;i++){
+      const hue = (Math.random()*360)|0;
+      particles.push({
+        type:"confetti",
+        x: cx + rand(-60,60),
+        y: cy + rand(-30,30),
+        vx: rand(-160,160),
+        vy: rand(-280,-140),
+        g: rand(380,520),
+        life: rand(1.1, 1.9),
+        t: 0,
+        rot: rand(0,Math.PI*2),
+        vr: rand(-10,10),
+        w: rand(5,11),
+        h: rand(9,18),
+        color: hsl(hue, 95, 60, 0.95)
+      });
+    }
+  }
+  function pushRing(x,y){
+    rings.push({x,y,r:10,vr:520,life:0.55,t:0,color:hsl(rand(0,360),95,62,0.75)});
+  }
 
-  function calcGoal(m){
-    const steps = [10000,25000,50000,100000,250000,500000,1000000,2500000,5000000,10000000];
-    for (const s of steps) if (m < s) return s;
-    return Math.pow(2, Math.ceil(Math.log2(m+1)));
+  function fxLoop(now){
+    const w = fx.width, h = fx.height;
+    fctx.clearRect(0,0,w,h);
+    fctx.save(); fctx.scale(DPR,DPR);
+
+    const dt = Math.min(0.033, (fxLoop._last ? (now - fxLoop._last)/1000 : 0.016));
+    fxLoop._last = now;
+
+    for (let i=rings.length-1;i>=0;i--){
+      const it=rings[i]; it.t += dt; it.r += it.vr*dt;
+      const a = 1 - (it.t / it.life);
+      if (a<=0){ rings.splice(i,1); continue; }
+      fctx.beginPath();
+      fctx.strokeStyle = it.color.replace("0.75", String(0.75*a));
+      fctx.lineWidth = 4*a;
+      fctx.arc(it.x,it.y,it.r,0,Math.PI*2);
+      fctx.stroke();
+    }
+
+    for (let i=particles.length-1;i>=0;i--){
+      const p=particles[i]; p.t += dt;
+      const a = 1 - (p.t / p.life);
+      if (a<=0){ particles.splice(i,1); continue; }
+      p.vy += p.g*dt; p.x += p.vx*dt; p.y += p.vy*dt;
+
+      if (p.type==="confetti"){
+        p.rot += p.vr*dt;
+        fctx.save();
+        fctx.translate(p.x,p.y);
+        fctx.rotate(p.rot);
+        fctx.globalAlpha = Math.max(0,a);
+        fctx.fillStyle = p.color;
+        fctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+        fctx.restore();
+      } else {
+        fctx.globalAlpha = Math.max(0,a);
+        fctx.fillStyle = p.color;
+        fctx.beginPath();
+        fctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        fctx.fill();
+      }
+    }
+
+    fctx.restore();
+    requestAnimationFrame(fxLoop);
   }
 
   // ===== UI helpers =====
@@ -348,439 +492,360 @@
     clearTimeout(toastEl._t);
     toastEl._t = setTimeout(()=>toastEl.classList.remove("show"), 950);
   }
-  function banner(msg){
-    bannerEl.textContent = msg;
-    bannerEl.classList.remove("show");
-    void bannerEl.offsetWidth;
-    bannerEl.classList.add("show");
-  }
-  function spawnFloat(text, x, y, size=18, cssColor="rgba(255,212,59,1)"){
-    const el = document.createElement("div");
-    el.className = "float";
-    el.textContent = text;
-    el.style.left = x + "px";
-    el.style.top  = y + "px";
-    el.style.fontSize = size + "px";
-    el.style.color = cssColor;
+  function spawnFloat(text, x, y, size=18, color="rgba(255,212,59,1)"){
+    const el=document.createElement("div");
+    el.className="float";
+    el.textContent=text;
+    el.style.left=x+"px";
+    el.style.top=y+"px";
+    el.style.fontSize=size+"px";
+    el.style.color=color;
     leftPanel.appendChild(el);
     setTimeout(()=>el.remove(), 1000);
   }
-  function addShake(strength=1){
-    // strength scales by re-triggering
-    leftPanel.classList.remove("shake");
-    void leftPanel.offsetWidth;
-    leftPanel.classList.add("shake");
-  }
 
-  // ===== Festival level (gradually more colorful) =====
-  function computeFestLv(m){
-    // 0..10 (ish)
-    const tiers = [0, 10000, 50000, 100000, 250000, 500000, 1000000, 2500000, 5000000, 10000000, 25000000];
-    let lv = 0;
-    for (let i=0;i<tiers.length;i++){
-      if (m >= tiers[i]) lv = i;
+  // ===== Fortune Bar helpers =====
+  function fortuneClass(name){
+    return {
+      "大吉":"fortune-daikichi",
+      "中吉":"fortune-chukichi",
+      "小吉":"fortune-shokichi",
+      "吉":"fortune-kichi",
+      "末吉":"fortune-suekichi",
+      "凶":"fortune-kyo",
+      "大凶":"fortune-daikyo",
+    }[name] || "fortune-kichi";
+  }
+  function showFortuneBar(name, delta){
+    fortuneBar.classList.remove(
+      "fortune-daikichi","fortune-chukichi","fortune-shokichi",
+      "fortune-kichi","fortune-suekichi","fortune-kyo","fortune-daikyo"
+    );
+    fortuneBar.classList.add(fortuneClass(name));
+    fortuneLabel.textContent = name;
+
+    if (typeof delta === "number"){
+      const sign = delta >= 0 ? "+" : "−";
+      fortuneDelta.textContent = `${sign}¥${Math.floor(Math.abs(delta)).toLocaleString("ja-JP")}`;
+    } else {
+      fortuneDelta.textContent = "";
     }
-    return lv; // 0..10
-  }
-  function applyFestivalLook(){
-    // glow opacity increases with festLv
-    const lv = state.festLv;
-    const op = clamp(0.06 + lv * 0.065, 0, 0.78);
-    glowEl.style.opacity = op.toFixed(3);
 
-    // coin brightness slightly increases
-    const bright = 1 + lv * 0.03;
-    const sat = 1 + lv * 0.05;
-    coinBtn.style.filter = `brightness(${bright.toFixed(2)}) saturate(${sat.toFixed(2)})`;
-
-    festLvEl.textContent = String(lv);
+    fortuneBar.animate(
+      [{transform:"scale(1)", filter:"brightness(1)"},
+       {transform:"scale(1.015)", filter:"brightness(1.15)"},
+       {transform:"scale(1)", filter:"brightness(1)"}],
+      {duration:220, easing:"ease-out"}
+    );
   }
 
-  function updateUI(){
+  // ===== Fortune System =====
+  const ORDER = ["大吉","中吉","小吉","吉","末吉","凶","大凶"];
+  const fortuneMeta = {
+    "大吉": {tone:"good"},
+    "中吉": {tone:"good"},
+    "小吉": {tone:"good"},
+    "吉":   {tone:"mid"},
+    "末吉": {tone:"mid"},
+    "凶":   {tone:"bad"},
+    "大凶": {tone:"bad"},
+  };
+
+  // order: 大吉,中吉,小吉,吉,末吉,凶,大凶
+  const modeWeights = {
+    steady:   [10, 14, 18, 22, 22, 10,  4],
+    balanced: [ 9, 12, 16, 22, 22, 12,  7],
+    risky:    [12, 13, 12, 18, 15, 18, 12],
+  };
+  const modeLabel = { steady:"安定", balanced:"バランス", risky:"博打" };
+
+  const fortuneMult = {
+    "大吉": +12,
+    "中吉": +7,
+    "小吉": +4,
+    "吉":   +2,
+    "末吉": +1,
+    "凶":   -4,
+    "大凶": -9
+  };
+  const modeVolatility = { steady:0.85, balanced:1.0, risky:1.25 };
+
+  function pickFortune(mode){
+    const w = modeWeights[mode] || modeWeights.balanced;
+    const total = w.reduce((a,b)=>a+b,0);
+    let r = Math.random()*total;
+    for (let i=0;i<w.length;i++){
+      r -= w[i];
+      if (r<=0) return ORDER[i];
+    }
+    return ORDER[3];
+  }
+
+  // ===== Game State =====
+  const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
+  const state = {
+    startMoney: 10000,
+    money: 10000,
+    running: false,
+    tLeft: 30.0,
+    presses: 0,
+    mode: "balanced",
+    counts: Object.fromEntries(ORDER.map(k=>[k,0])),
+    goodCount: 0,
+    badCount: 0,
+    maxMoney: 10000,
+    minMoney: 10000
+  };
+
+  function setDrawEnabled(on){
+    drawBtn.classList.toggle("disabled", !on);
+  }
+
+  function moneyInt(){ return Math.floor(state.money + 1e-9); }
+  function yen(n){ return "¥" + Math.floor(n).toLocaleString("ja-JP"); }
+
+  function updateTop(){
+    timeEl.textContent = state.tLeft.toFixed(1);
     moneyEl.textContent = moneyInt().toLocaleString("ja-JP");
-    bigMoneyEl.textContent = yenMoney();
-
-    clickValueEl.textContent = String(state.clickValue);
-    ppsEl.textContent = String(state.pps);
-    critEl.textContent = Math.round(state.critChance*100) + "%";
-
-    lvClickEl.textContent = "Lv " + state.lvClick;
-    lvAutoEl.textContent  = "Lv " + state.lvAuto;
-    lvCritEl.textContent  = "Lv " + state.lvCrit;
-
-    priceClickEl.textContent = yenInt(state.priceClick);
-    priceAutoEl.textContent  = yenInt(state.priceAuto);
-    priceCritEl.textContent  = yenInt(state.priceCrit);
-
-    buyClickBtn.style.opacity = (moneyInt() >= state.priceClick) ? "1" : ".55";
-    buyAutoBtn.style.opacity  = (moneyInt() >= state.priceAuto) ? "1" : ".55";
-    buyCritBtn.style.opacity  = (moneyInt() >= state.priceCrit) ? "1" : ".55";
-
-    const g = calcGoal(moneyInt());
-    goalBadge.textContent = "次の目標：" + yenInt(g);
-
-    // festival level from money + bonus from recent action
-    const baseLv = computeFestLv(moneyInt());
-    state.festLv = Math.max(state.festLv, baseLv);
-    applyFestivalLook();
+    moneyBigEl.textContent = yen(state.money);
+    pressesEl.textContent = String(state.presses);
+    modeNameEl.textContent = modeLabel[state.mode] || "—";
   }
 
-  function save(){
-    const d = {
-      money: state.money,
-      clickValue: state.clickValue,
-      pps: state.pps,
-      critChance: state.critChance,
-      lvClick: state.lvClick,
-      lvAuto: state.lvAuto,
-      lvCrit: state.lvCrit,
-      priceClick: state.priceClick,
-      priceAuto: state.priceAuto,
-      priceCrit: state.priceCrit,
-      lastMilestone: state.lastMilestone,
-      festLv: state.festLv
-    };
-    localStorage.setItem(KEY, JSON.stringify(d));
-  }
-  function load(){
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return;
-    try{
-      const d = JSON.parse(raw);
-      if (!d) return;
-      Object.assign(state, d);
-      state.critChance = clamp(state.critChance, 0, 0.5);
-      state.money = Number(state.money) || 0;
-      state.lastMilestone = Number(state.lastMilestone) || 0;
-      state.festLv = Number(state.festLv) || 0;
-    }catch{}
+  function resetAll(){
+    modalBackdrop.style.display = "none";
+    state.mode = modeSel.value;
+    state.money = state.startMoney;
+    state.tLeft = 30.0;
+    state.running = false;
+    state.presses = 0;
+    state.counts = Object.fromEntries(ORDER.map(k=>[k,0]));
+    state.goodCount = 0;
+    state.badCount = 0;
+    state.maxMoney = state.startMoney;
+    state.minMoney = state.startMoney;
+
+    setDrawEnabled(false);
+    updateTop();
+    showFortuneBar("—");
+    toast("準備OK。モード選んでスタート。");
   }
 
-  // ===== FX Canvas (confetti / sparks / rings) =====
-  const fx = document.getElementById("fx");
-  const fctx = fx.getContext("2d");
-  const DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+  function startGame(){
+    state.mode = modeSel.value;
+    state.money = state.startMoney;
+    state.tLeft = 30.0;
+    state.running = true;
+    state.presses = 0;
+    state.counts = Object.fromEntries(ORDER.map(k=>[k,0]));
+    state.goodCount = 0;
+    state.badCount = 0;
+    state.maxMoney = state.startMoney;
+    state.minMoney = state.startMoney;
 
-  function resizeFx(){
-    const r = leftPanel.getBoundingClientRect();
-    fx.width = Math.floor(r.width * DPR);
-    fx.height = Math.floor(r.height * DPR);
-  }
-  window.addEventListener("resize", resizeFx);
-
-  const particles = [];
-  const rings = [];
-
-  function rand(a,b){ return a + Math.random()*(b-a); }
-  function hsl(h,s,l,a=1){ return `hsla(${h},${s}%,${l}%,${a})`; }
-
-  function pushConfetti(burst=60){
-    const r = leftPanel.getBoundingClientRect();
-    const cx = r.width * 0.5;
-    const cy = r.height * 0.35;
-
-    const lv = state.festLv;
-    const count = Math.floor(burst * (1 + lv*0.10));
-
-    for (let i=0;i<count;i++){
-      const hue = (Math.random()*360)|0;
-      particles.push({
-        type:"confetti",
-        x: cx + rand(-40,40),
-        y: cy + rand(-20,20),
-        vx: rand(-140,140) * (0.9 + lv*0.06),
-        vy: rand(-260,-120) * (0.95 + lv*0.05),
-        g: rand(380,520),
-        life: rand(1.1, 1.8) * (0.95 + lv*0.04),
-        t: 0,
-        rot: rand(0,Math.PI*2),
-        vr: rand(-10,10),
-        w: rand(5,10),
-        h: rand(8,16),
-        color: hsl(hue, 95, 60, 0.95)
-      });
-    }
-  }
-
-  function pushSparks(x,y,amount=22, power=1){
-    const lv = state.festLv;
-    const count = Math.floor(amount * (1 + lv*0.06));
-    for (let i=0;i<count;i++){
-      const ang = rand(0, Math.PI*2);
-      const sp = rand(160, 420) * power * (0.95 + lv*0.05);
-      const hue = (40 + rand(-20, 60) + lv*6) % 360;
-      particles.push({
-        type:"spark",
-        x, y,
-        vx: Math.cos(ang)*sp,
-        vy: Math.sin(ang)*sp,
-        g: rand(480, 820),
-        life: rand(0.45, 0.75),
-        t: 0,
-        r: rand(1.2, 2.4),
-        color: hsl(hue, 98, 64, 0.95)
-      });
-    }
-  }
-
-  function pushRing(x,y){
-    const lv = state.festLv;
-    rings.push({
-      x, y,
-      r: 10,
-      vr: 520 * (0.95 + lv*0.04),
-      life: 0.55,
-      t: 0,
-      color: hsl(rand(0,360), 95, 62, 0.75)
-    });
-  }
-
-  function flash(intensity=0.25){
-    // quick overlay flash via drawing in fx (one-shot)
-    const r = leftPanel.getBoundingClientRect();
-    fctx.save();
-    fctx.scale(DPR,DPR);
-    fctx.fillStyle = `rgba(255,255,255,${intensity})`;
-    fctx.fillRect(0,0,r.width,r.height);
-    fctx.restore();
-  }
-
-  function fxLoop(now){
-    const r = leftPanel.getBoundingClientRect();
-    const w = fx.width, h = fx.height;
-
-    fctx.clearRect(0,0,w,h);
-    fctx.save();
-    fctx.scale(DPR,DPR);
-
-    const dt = Math.min(0.033, (fxLoop._last ? (now - fxLoop._last)/1000 : 0.016));
-    fxLoop._last = now;
-
-    // Rings
-    for (let i=rings.length-1;i>=0;i--){
-      const it = rings[i];
-      it.t += dt;
-      it.r += it.vr * dt;
-      const a = 1 - (it.t / it.life);
-      if (a <= 0){ rings.splice(i,1); continue; }
-      fctx.beginPath();
-      fctx.strokeStyle = it.color.replace("0.75", String(0.75*a));
-      fctx.lineWidth = 4 * a;
-      fctx.arc(it.x, it.y, it.r, 0, Math.PI*2);
-      fctx.stroke();
-    }
-
-    // Particles
-    for (let i=particles.length-1;i>=0;i--){
-      const p = particles[i];
-      p.t += dt;
-      const a = 1 - (p.t / p.life);
-      if (a <= 0){ particles.splice(i,1); continue; }
-
-      p.vy += p.g * dt;
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-
-      if (p.type === "confetti"){
-        p.rot += p.vr * dt;
-        fctx.save();
-        fctx.translate(p.x, p.y);
-        fctx.rotate(p.rot);
-        fctx.globalAlpha = Math.max(0, a);
-        fctx.fillStyle = p.color;
-        fctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
-        fctx.restore();
-      } else {
-        fctx.globalAlpha = Math.max(0, a);
-        fctx.fillStyle = p.color;
-        fctx.beginPath();
-        fctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-        fctx.fill();
-      }
-    }
-
-    fctx.restore();
-    requestAnimationFrame(fxLoop);
-  }
-
-  // ===== Gameplay =====
-  function addMoney(amount){
-    state.money += amount;
-    updateUI();
-  }
-
-  function celebrateMilestone(th){
-    // Upgrade festival level a bit extra (sticky)
-    state.festLv = Math.max(state.festLv, computeFestLv(th) + 1);
-
+    setDrawEnabled(true);
     sfx.boom();
-    banner(`大台突破！ ${yenInt(th)} 🎉`);
-    toast("フェスティバル加速！");
-    addShake(1);
-
-    // confetti + rings
-    const rr = leftPanel.getBoundingClientRect();
-    pushConfetti(90);
-    pushRing(rr.width*0.5, rr.height*0.35);
-    pushRing(rr.width*0.5, rr.height*0.35);
-    flash(0.20);
-
-    save();
+    showFortuneBar("吉"); // 開始時の雰囲気
+    toast(`開始：所持金 ${yen(state.money)} / モード：${modeLabel[state.mode]}`);
+    updateTop();
   }
 
-  function checkMilestones(prevM, curM){
-    // milestone thresholds: 1万, 5万, 10万, 50万, 100万, 500万, 1000万...
-    const milestones = [10000,50000,100000,500000,1000000,5000000,10000000,50000000,100000000];
-    for (const th of milestones){
-      if (prevM < th && curM >= th){
-        state.lastMilestone = Math.max(state.lastMilestone, th);
-        celebrateMilestone(th);
+  function endGame(){
+    if (!state.running) { showResults(); return; }
+    state.running = false;
+    setDrawEnabled(false);
+    sfx.end();
+    toast("結果を表示するよ。");
+    showResults();
+  }
+
+  function doDraw(ev){
+    if (!state.running) return;
+
+    const rectPanel = leftPanel.getBoundingClientRect();
+    const x = (ev?.clientX ?? (rectPanel.left + rectPanel.width/2)) - rectPanel.left;
+    const y = (ev?.clientY ?? (rectPanel.top  + rectPanel.height*0.52)) - rectPanel.top;
+
+    const f = pickFortune(state.mode);
+    state.counts[f]++;
+
+    const vol = modeVolatility[state.mode] ?? 1.0;
+
+    // pressが増えるほどちょっとだけ刺激増
+    const base = 90 + Math.min(210, state.presses * 1.2);
+    let delta = base * (fortuneMult[f]) * vol;
+
+    // risky spice
+    if (state.mode === "risky" && f === "大吉" && Math.random() < 0.08) delta *= 2.2;
+    if (state.mode === "risky" && f === "大凶" && Math.random() < 0.06) delta *= 1.8;
+
+    // apply
+    const before = state.money;
+    state.money = clamp(state.money + delta, 0, 1e12);
+    state.presses++;
+
+    state.maxMoney = Math.max(state.maxMoney, state.money);
+    state.minMoney = Math.min(state.minMoney, state.money);
+
+    const meta = fortuneMeta[f];
+    const isGood = meta.tone === "good";
+    const isBad = meta.tone === "bad";
+
+    // bar (別表紙表示)
+    showFortuneBar(f, delta);
+
+    // FX
+    sfx.tap();
+    const abs = Math.abs(delta);
+    const power = clamp(0.7 + Math.log10(abs+10)*0.25, 0.7, 2.0);
+    pushRing(x, y);
+    pushSparks(x, y, Math.floor(10 + power*12), power);
+
+    if (f === "大吉") pushConfetti(28);
+    if (f === "大凶") pushConfetti(10);
+
+    if (isGood) sfx.good();
+    if (isBad)  sfx.bad();
+
+    const sign = delta >= 0 ? "+" : "−";
+    const text = `${sign}${yen(abs)}`;
+    const color = isBad ? "rgba(255,77,109,1)" : isGood ? "rgba(125,255,202,1)" : "rgba(255,212,59,1)";
+    spawnFloat(text, x, y, abs >= 3000 ? 28 : 20, color);
+
+    if (abs >= 5000) toast(delta > 0 ? "ドカ増え！" : "ドカ減り！");
+    if (before < 10000 && state.money >= 10000) toast("1万円ライン復帰！");
+    if (before < 20000 && state.money >= 20000) toast("2万円突破！");
+    if (before < 50000 && state.money >= 50000) toast("5万円突破！");
+
+    updateTop();
+  }
+
+  // ===== Timer loop =====
+  let last = performance.now();
+  function loop(now){
+    const dt = Math.min(0.05, (now - last)/1000);
+    last = now;
+
+    if (state.running){
+      state.tLeft -= dt;
+      if (state.tLeft <= 0){
+        state.tLeft = 0;
+        updateTop();
+        endGame();
+      } else {
+        updateTop();
       }
     }
+    requestAnimationFrame(loop);
   }
 
-  function doClick(ev){
-    const rect = coinBtn.getBoundingClientRect();
-    const x = (ev?.clientX ?? (rect.left + rect.width/2)) - leftPanel.getBoundingClientRect().left;
-    const y = (ev?.clientY ?? (rect.top  + rect.height/2)) - leftPanel.getBoundingClientRect().top;
-
-    const prev = moneyInt();
-
-    let gain = state.clickValue;
-    const isCrit = Math.random() < state.critChance;
-    if (isCrit) gain *= 10;
-
-    addMoney(gain);
-
-    // normal juicy feedback
-    sfx.coin();
-    coinBtn.classList.remove("pulse");
-    void coinBtn.offsetWidth;
-    coinBtn.classList.add("pulse");
-
-    if (isCrit){
-      // CRIT FESTIVAL: more sparks + flash + shake + banner
-      state.festLv = Math.min(15, state.festLv + 1); // temporary ramp
-      sfx.crit();
-      banner(`CRITICAL ×10 !!  +${yenInt(gain)} 💥`);
-      toast("ドカン！");
-      addShake(1.2);
-      flash(0.18);
-
-      pushSparks(x, y, 34, 1.25);
-      pushRing(x, y);
-
-      spawnFloat(`+${yenInt(gain)}!!`, x, y, 26, "rgba(255,77,109,1)");
-      spawnFloat("×10", x+30, y-10, 22, "rgba(255,212,59,1)");
-    } else {
-      // small spark depending on festival level
-      const small = 6 + state.festLv*1.2;
-      pushSparks(x, y, small, 0.55);
-      spawnFloat("+" + yenInt(gain), x, y, 18, "rgba(255,212,59,1)");
-    }
-
-    // milestone check
-    checkMilestones(prev, moneyInt());
+  // ===== Result / Type logic =====
+  function pct(n, total){
+    if (!total) return "0%";
+    return Math.round((n/total)*100) + "%";
   }
 
-  function buy(kind){
-    const m = moneyInt();
-    if (kind === "click"){
-      if (m < state.priceClick) { sfx.no(); toast("お金が足りない"); return; }
-      state.money -= state.priceClick;
-      state.clickValue += 1;
-      state.lvClick += 1;
-      state.priceClick = Math.ceil(state.priceClick * grow.click + 4);
-      sfx.buy(); toast("単価UP！");
-    }
-    if (kind === "auto"){
-      if (m < state.priceAuto) { sfx.no(); toast("お金が足りない"); return; }
-      state.money -= state.priceAuto;
-      state.pps += 1;
-      state.lvAuto += 1;
-      state.priceAuto = Math.ceil(state.priceAuto * grow.auto + 8);
-      sfx.buy(); toast("オート機械稼働！");
-    }
-    if (kind === "crit"){
-      if (m < state.priceCrit) { sfx.no(); toast("お金が足りない"); return; }
-      if (state.critChance >= 0.5) { sfx.no(); toast("クリ率は最大"); return; }
-      state.money -= state.priceCrit;
-      state.critChance = clamp(state.critChance + 0.01, 0, 0.5);
-      state.lvCrit += 1;
-      state.priceCrit = Math.ceil(state.priceCrit * grow.crit + 12);
-      sfx.buy(); toast("クリ率UP！");
-    }
-    updateUI();
-    save();
+  function judgeTotal(net){
+    if (net >= 40000) return "宇宙級（爆増）";
+    if (net >= 20000) return "大勝ち";
+    if (net >= 8000)  return "勝ち";
+    if (net >= 0)     return "微勝ち";
+    if (net >= -5000) return "微負け";
+    if (net >= -15000)return "負け";
+    return "大負け";
   }
 
-  // Passive income
-  function tick(now){
-    const prev = moneyInt();
-    const dt = (now - state.lastTick) / 1000;
-    state.lastTick = now;
+  function decideType(){
+    const total = state.presses || 1;
+    const c = state.counts;
 
-    if (state.pps > 0){
-      state.money += state.pps * dt;
-    }
+    const good = c["大吉"] + c["中吉"] + c["小吉"];
+    const bad  = c["凶"] + c["大凶"];
+    const mid  = c["吉"] + c["末吉"];
 
-    // mild passive celebration: when festival level is high, subtle confetti sometimes
-    if (state.festLv >= 6 && Math.random() < 0.0025){
-      const rr = leftPanel.getBoundingClientRect();
-      pushSparks(rr.width*rand(0.25,0.75), rr.height*rand(0.35,0.8), 10, 0.6);
-    }
+    const goodRate = good / total;
+    const badRate  = bad  / total;
 
-    const cur = moneyInt();
-    if (cur !== prev){
-      updateUI();
-      checkMilestones(prev, cur);
-    } else {
-      // still keep UI fresh for goal badge / fest lv
-      updateUI();
-    }
+    const net = moneyInt() - state.startMoney;
+    const range = state.maxMoney - state.minMoney;
 
-    requestAnimationFrame(tick);
+    if (goodRate >= 0.45 && net > 0) return {type:"強運ブースト型", advice:"良い流れの時ほど雑な判断が増える。最後に確認を1回入れると財運が伸びる。"};
+    if (badRate >= 0.35 && net < 0)  return {type:"厄回収型", advice:"凶が出た後にムキになると削られやすい。3回深呼吸してから再開が吉。"};
+    if (range >= 25000)              return {type:"ジェットコースター型", advice:"増えた直後が危険。『増えたら守る』のルールを先に決めると強い。"};
+    if (mid/total >= 0.55)           return {type:"堅実積み上げ型", advice:"派手さより継続が勝つ。少額を積む習慣に最適。"};
+    if (total >= 120)                return {type:"連打職人型", advice:"集中力が武器。ただし疲れで判断が荒れやすい。短い休憩を挟むと伸びる。"};
+    return {type:"一発狙い型", advice:"少ない手数で勝ちに行くタイプ。良い目が出たら欲張りすぎず確定させると勝ちやすい。"};
   }
 
-  // ===== Wire =====
-  coinBtn.addEventListener("click", (e)=>doClick(e));
-  coinBtn.addEventListener("touchstart", (e)=>{ doClick(e.touches[0]); }, {passive:true});
+  function showResults(){
+    const total = state.presses || 0;
+    const final = moneyInt();
+    const net = final - state.startMoney;
+    const judge = judgeTotal(net);
+    const t = decideType();
 
-  buyClickBtn.addEventListener("click", ()=>buy("click"));
-  buyAutoBtn.addEventListener("click",  ()=>buy("auto"));
-  buyCritBtn.addEventListener("click",  ()=>buy("crit"));
+    resultTitle.textContent = `総合判定：${judge}`;
+    const netText = (net >= 0) ? `+${net.toLocaleString("ja-JP")}` : `${net.toLocaleString("ja-JP")}`;
+    resultSummary.innerHTML =
+      `<div>開始：<b class="mono">¥10,000</b> ／ 終了：<b class="mono">${yen(final)}</b> ／ 獲得コイン数：<b class="mono">${netText}</b> 円</div>
+       <div>モード：<b>${modeLabel[state.mode]}</b> ／ 引いた回数：<b>${total}</b> 回 ／ 最大：<b class="mono">${yen(state.maxMoney)}</b> ／ 最小：<b class="mono">${yen(state.minMoney)}</b></div>`;
+
+    countTable.innerHTML = "";
+    for (const name of ORDER){
+      const n = state.counts[name] || 0;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td><span class="badge">${name}</span></td>
+                      <td>${n}</td>
+                      <td>${pct(n, total)}</td>`;
+      countTable.appendChild(tr);
+    }
+
+    resultTypeLine.innerHTML = `あなたのタイプ：<b>${t.type}</b> です`;
+    resultAdviceLine.textContent = `注意：${t.advice}`;
+    modalBackdrop.style.display = "flex";
+  }
+
+  // ===== Events =====
+  btnAudio.addEventListener("click", ()=>{
+    ensureAudio();
+    muted = false;
+    btnAudio.textContent = "Audio READY";
+    setTimeout(()=>btnAudio.textContent="Audio ON", 800);
+  });
+
+  btnReset.addEventListener("click", ()=>{
+    ensureAudio();
+    if (!confirm("リセットする？")) return;
+    resetAll();
+  });
 
   btnStart.addEventListener("click", ()=>{
     ensureAudio();
-    toast("音OK。フェス始めよう。");
-    sfx.buy();
-  });
-  btnMute.addEventListener("click", ()=>{
-    ensureAudio();
-    muted = !muted;
-    btnMute.textContent = `Sound: ${muted ? "OFF" : "ON"}`;
-    if (!muted) beep({freq:660,dur:0.06,type:"triangle",gain:0.05});
-  });
-  btnReset.addEventListener("click", ()=>{
-    ensureAudio();
-    const ok = confirm("セーブも含めてリセットする？");
-    if (!ok) return;
-    localStorage.removeItem(KEY);
-    location.reload();
+    modalBackdrop.style.display = "none";
+    startGame();
   });
 
-  // ===== Init =====
-  load();
-  updateUI();
+  btnEnd.addEventListener("click", ()=>{
+    ensureAudio();
+    endGame();
+  });
+
+  drawBtn.addEventListener("click", (e)=>doDraw(e));
+  drawBtn.addEventListener("touchstart", (e)=>{ doDraw(e.touches[0]); }, {passive:true});
+
+  btnClose.addEventListener("click", ()=>{ modalBackdrop.style.display="none"; });
+  btnPrint.addEventListener("click", ()=>{ window.print(); });
+  btnAgain.addEventListener("click", ()=>{
+    ensureAudio();
+    modalBackdrop.style.display="none";
+    startGame();
+  });
+
+  // Init
   resizeFx();
-  setInterval(save, 2000);
-
-  requestAnimationFrame((t)=>{
-    state.lastTick = t;
-    requestAnimationFrame(tick);
-  });
   requestAnimationFrame(fxLoop);
-
+  resetAll();
+  requestAnimationFrame(loop);
 })();
 </script>
 </body>
