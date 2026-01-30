@@ -3,39 +3,58 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>財運タイムアタック（1万円→30秒）リズム＆態度ロジック版</title>
+  <title>財運タイムアタック（投資アプリ風）</title>
   <style>
     :root{
-      --bg:#0b0f1a; --panel:#0d1433; --line:#22306a;
-      --txt:#e8ecff; --muted:rgba(232,236,255,.78);
+      --bg:#0b0f1a;
+      --panelA: rgba(10,16,40,.95);
+      --panelB: rgba(7,10,22,.95);
+      --line: rgba(34,48,106,.92);
+      --txt:#e8ecff;
+      --muted: rgba(232,236,255,.74);
+      --muted2: rgba(232,236,255,.55);
+      --chip: rgba(13,20,51,.72);
+      --good: rgba(255,90,90,1);
+      --bad: rgba(160,160,175,1);
     }
+
     html,body{height:100%;margin:0;background:var(--bg);color:var(--txt);
       font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans JP",sans-serif;}
     .wrap{max-width:1020px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:12px;}
+
     .top{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
     .stats{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .pill{background:rgba(13,20,51,.75);backdrop-filter: blur(6px);
-      border:1px solid rgba(34,48,106,.9);border-radius:999px;padding:8px 12px;font-size:13px}
+    .pill{
+      background:var(--chip);
+      backdrop-filter: blur(6px);
+      border:1px solid rgba(34,48,106,.9);
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:13px
+    }
     .pill b{font-size:14px}
     .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    button{background:#1b2550;color:#fff;border:1px solid #2a3a7a;border-radius:12px;padding:9px 12px;cursor:pointer}
+    button{
+      background:#1b2550;color:#fff;border:1px solid #2a3a7a;border-radius:12px;
+      padding:9px 12px;cursor:pointer
+    }
     button:active{transform:translateY(1px)}
     button.secondary{background:transparent;border:1px solid rgba(34,48,106,.95);color:var(--txt)}
     button.big{padding:14px 16px;border-radius:16px;font-weight:1000;font-size:16px;letter-spacing:.02em}
+
     .grid{display:grid;grid-template-columns: 1.2fr .8fr; gap:12px}
     @media (max-width:900px){ .grid{grid-template-columns:1fr;} }
 
     .panel{
       border-radius:18px; padding:14px; position:relative; overflow:hidden;
-      border:1px solid rgba(34,48,106,.92);
+      border:1px solid var(--line);
       background:
         radial-gradient(1200px 600px at 10% 0%, rgba(147,180,255,.10), rgba(0,0,0,0)),
         radial-gradient(1200px 600px at 90% 0%, rgba(255,77,109,.08), rgba(0,0,0,0)),
-        linear-gradient(180deg, rgba(10,16,40,.95), rgba(7,10,22,.95));
+        linear-gradient(180deg, var(--panelA), var(--panelB));
       box-shadow: 0 22px 55px rgba(0,0,0,.35);
-      transform: translate3d(0,0,0);
     }
-    .panel.right{background:linear-gradient(180deg, rgba(10,16,40,.95), rgba(7,10,22,.95));}
+    .panel.right{background:linear-gradient(180deg, var(--panelA), var(--panelB));}
 
     .title{font-weight:1000;font-size:18px}
     .hint{font-size:13px;color:var(--muted);line-height:1.55}
@@ -45,7 +64,7 @@
     /* reserve space for fortuneBar */
     .center{
       display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center;
-      min-height:520px;
+      min-height:540px;
       padding-top:82px;
     }
     .moneyBig{font-size:46px;font-weight:1000;letter-spacing:.02em;text-shadow:0 10px 26px rgba(0,0,0,.45)}
@@ -84,7 +103,7 @@
     .sideBtn.disabled{opacity:.55; pointer-events:none; filter:grayscale(.2);}
     .smallRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
 
-    /* Fortune Bar */
+    /* Fortune Bar (別表紙) */
     .fortuneBar{
       position:absolute;
       left:14px; right:14px; top:14px;
@@ -118,7 +137,7 @@
       line-height:1.25;
     }
 
-    /* red for good, dark for bad */
+    /* 大吉ほど赤、凶ほど暗い */
     .fortune-daikichi { background: linear-gradient(90deg, rgba(255,60,60,.55), rgba(0,0,0,.20)); }
     .fortune-chukichi { background: linear-gradient(90deg, rgba(255,110,60,.45), rgba(0,0,0,.20)); }
     .fortune-shokichi { background: linear-gradient(90deg, rgba(255,170,70,.34), rgba(0,0,0,.20)); }
@@ -161,9 +180,14 @@
     canvas.fx{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:2; }
 
     .card{
-      background:rgba(13,20,51,.78); backdrop-filter: blur(8px);
-      border:1px solid rgba(34,48,106,.9); border-radius:14px;
-      padding:12px; display:flex; flex-direction:column; gap:10px;
+      background:rgba(13,20,51,.78);
+      backdrop-filter: blur(8px);
+      border:1px solid rgba(34,48,106,.9);
+      border-radius:14px;
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
     }
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
     select{
@@ -172,6 +196,41 @@
       padding:10px 12px; font-size:14px; min-width:260px;
     }
     .hr{height:1px;background:rgba(255,255,255,.08);margin:8px 0}
+
+    .badge{
+      display:inline-block; padding:3px 8px; border-radius:999px;
+      border:1px solid rgba(34,48,106,.9);
+      background:rgba(147,180,255,.12);
+      font-size:12px;
+    }
+
+    /* ===== 投資アプリ風チャート ===== */
+    .chartWrap{
+      background:rgba(0,0,0,.16);
+      border:1px solid rgba(34,48,106,.85);
+      border-radius:14px;
+      padding:10px;
+      overflow:hidden;
+    }
+    .chartHeader{
+      display:flex; align-items:baseline; justify-content:space-between; gap:10px;
+      padding:2px 2px 8px 2px;
+    }
+    .chartNow{
+      font-weight:1000;
+      font-size:16px;
+    }
+    .chartSub{
+      font-size:12px;
+      color:var(--muted2);
+      white-space:nowrap;
+    }
+    #moneyChart{ width:100%; height:220px; display:block; }
+    .chartFoot{
+      font-size:12px;color:var(--muted2);
+      display:flex; justify-content:space-between;
+      padding:6px 2px 0 2px;
+    }
 
     /* Result modal */
     .modalBackdrop{
@@ -190,12 +249,7 @@
     table{width:100%;border-collapse:collapse;margin-top:10px}
     th,td{border-bottom:1px solid rgba(255,255,255,.10);padding:8px 6px;text-align:left;font-size:13px}
     th{color:rgba(232,236,255,.85)}
-    .badge{
-      display:inline-block; padding:3px 8px; border-radius:999px;
-      border:1px solid rgba(34,48,106,.9);
-      background:rgba(147,180,255,.12);
-      font-size:12px;
-    }
+    .resultBig{font-size:26px;font-weight:1000}
     .modalBtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px}
 
     @media print{
@@ -210,6 +264,7 @@
     }
   </style>
 </head>
+
 <body>
 <div class="wrap">
   <div class="top">
@@ -229,6 +284,7 @@
   </div>
 
   <div class="grid">
+    <!-- LEFT -->
     <div class="panel" id="leftPanel">
       <canvas class="fx" id="fx"></canvas>
 
@@ -244,7 +300,7 @@
         <div class="hint">
           30秒で、所持金10,000円をどれだけ増やせるか。<br>
           <b>リズム良く押すと大吉寄り</b>。<b>連打＆不安定だと凶寄り</b>。<br>
-          さらに「ありがとう／もっと頑張れよ」で運勢の偏りを操作できる。
+          「ありがとう／もっと頑張れよ」で運勢の偏りも操作できる。
         </div>
 
         <div class="drawBtn disabled" id="drawBtn">財運を引く（押す）</div>
@@ -259,10 +315,11 @@
           <button class="big secondary" id="btnEnd">終了（結果）</button>
         </div>
 
-        <div class="tiny">※ 「ありがとう」は運を上げるが、連打で雑に押すと逆効果っぽく感じるようにしてある。</div>
+        <div class="tiny">※ 「ありがとう」は丁寧に押すと効きやすい。雑な連打は効きにくい。</div>
       </div>
     </div>
 
+    <!-- RIGHT -->
     <div class="panel right">
       <div class="card">
         <div class="title">モード選択</div>
@@ -291,17 +348,34 @@
 
         <div class="hr"></div>
 
+        <div class="title">所持金 推移（リアルタイム）</div>
+        <div class="tiny">30秒の変化が線で見える（投資アプリ風）</div>
+
+        <div class="chartWrap">
+          <div class="chartHeader">
+            <div class="chartNow mono" id="chartNow">¥10,000</div>
+            <div class="chartSub mono" id="chartNet">±0</div>
+          </div>
+          <canvas id="moneyChart"></canvas>
+          <div class="chartFoot mono">
+            <span>0s</span><span>15s</span><span>30s</span>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
         <div class="hint">
           追加ロジック：<br>
           ・<b>ありがとう</b>：短時間だけ良い方へ寄る（偏り +）<br>
           ・<b>もっと頑張れよ</b>：短時間だけ悪い方へ寄る（偏り −）<br>
-          ・メインボタンは<b>リズムが安定</b>すると良い方へ寄る／<b>連打＆不安定</b>だと悪い方へ寄る
+          ・メインは<b>一定テンポ</b>で良い方／<b>連打・ブレ</b>で悪い方へ寄る
         </div>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Result Modal -->
 <div class="modalBackdrop" id="modalBackdrop">
   <div class="modal">
     <h2>結果</h2>
@@ -363,10 +437,15 @@
   const btnPrint = document.getElementById("btnPrint");
   const btnAgain = document.getElementById("btnAgain");
 
+  // Chart header
+  const chartNowEl = document.getElementById("chartNow");
+  const chartNetEl = document.getElementById("chartNet");
+
   // ===== Audio =====
   let audioCtx = null;
   let audioUnlocked = false;
   let muted = false;
+
   function ensureAudio(){
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === "suspended") audioCtx.resume();
@@ -406,6 +485,7 @@
   const rings = [];
   function rand(a,b){ return a + Math.random()*(b-a); }
   function hsl(h,s,l,a=1){ return `hsla(${h},${s}%,${l}%,${a})`; }
+
   function resizeFx(){
     const r = leftPanel.getBoundingClientRect();
     fx.width = Math.floor(r.width * DPR);
@@ -457,6 +537,7 @@
   function fxLoop(now){
     fctx.clearRect(0,0,fx.width,fx.height);
     fctx.save(); fctx.scale(DPR,DPR);
+
     const dt = Math.min(0.033, (fxLoop._last ? (now - fxLoop._last)/1000 : 0.016));
     fxLoop._last = now;
 
@@ -547,16 +628,16 @@
 
     fortuneBar.animate(
       [{transform:"scale(1)", filter:"brightness(1)"},
-       {transform:"scale(1.015)", filter:"brightness(1.15)"},
+       {transform:"scale(1.012)", filter:"brightness(1.12)"},
        {transform:"scale(1)", filter:"brightness(1)"}],
-      {duration:220, easing:"ease-out"}
+      {duration:200, easing:"ease-out"}
     );
   }
 
   // ===== Fortune System =====
   const ORDER = ["大吉","中吉","小吉","吉","末吉","凶","大凶"];
 
-  // baseline mode weights (order same as ORDER)
+  // base weights (order same as ORDER)
   const modeWeights = {
     steady:   [10, 14, 18, 22, 22, 10,  4],
     balanced: [ 9, 12, 16, 22, 22, 12,  7],
@@ -564,7 +645,6 @@
   };
   const modeLabel = { steady:"安定", balanced:"バランス", risky:"博打" };
 
-  // money delta strength
   const fortuneMult = {
     "大吉": +12,
     "中吉": +7,
@@ -576,10 +656,7 @@
   };
   const modeVolatility = { steady:0.85, balanced:1.0, risky:1.25 };
 
-  // ===== New: Bias (attitude) + Rhythm influence =====
-  // bias: -1..+1 (ありがとうで+、もっと頑張れよで-). time-decays.
-  // rhythm: -1..+1 (安定で+、連打/不安定で-). computed from recent intervals.
-  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+  const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
 
   function weightedPick(names, weights){
     const total = weights.reduce((a,b)=>a+b,0);
@@ -592,82 +669,55 @@
   }
 
   function applyInfluenceToWeights(baseW, bias, rhythm){
-    // baseW array length 7
-    // bias(+): push toward good (index 0..2). bias(-): push toward bad (index 5..6)
-    // rhythm(+): push toward good. rhythm(-): push toward bad.
-    // effect strength is moderate so it "feels" but not deterministic.
     const w = baseW.slice();
-
-    // combine influence
-    const influ = clamp(0.55*bias + 0.75*rhythm, -1, 1); // rhythm stronger than attitude
+    // rhythm stronger
+    const influ = clamp(0.55*bias + 0.75*rhythm, -1, 1);
     const goodBoost = Math.max(0, influ);
     const badBoost  = Math.max(0, -influ);
 
-    // good side: indices 0,1,2; bad: 5,6; mid: 3,4
-    // boost distribution
     w[0] *= (1 + 0.85*goodBoost);
     w[1] *= (1 + 0.55*goodBoost);
     w[2] *= (1 + 0.35*goodBoost);
-
-    // mid slightly reduced when goodBoost high (keeps total consistent-ish)
     w[3] *= (1 - 0.18*goodBoost);
     w[4] *= (1 - 0.10*goodBoost);
 
-    // bad amplified when badBoost
     w[5] *= (1 + 0.70*badBoost);
     w[6] *= (1 + 1.10*badBoost);
 
-    // when badBoost, reduce good a bit
     w[0] *= (1 - 0.22*badBoost);
     w[1] *= (1 - 0.18*badBoost);
     w[2] *= (1 - 0.12*badBoost);
 
-    // avoid collapse
     for (let i=0;i<w.length;i++) w[i] = Math.max(0.5, w[i]);
-
     return w;
   }
 
-  // rhythm scoring:
-  // target interval ~ 380ms (comfortable rhythm)
-  // too fast (<160ms) => bad
-  // unstable (high variance) => bad
   function computeRhythmScore(intervals){
     if (intervals.length < 4) return 0;
-
-    const ms = intervals.slice(-8); // last up to 8
+    const ms = intervals.slice(-8);
     const n = ms.length;
     const mean = ms.reduce((a,b)=>a+b,0)/n;
-
-    // variance
     const varr = ms.reduce((a,b)=>a+(b-mean)*(b-mean),0)/n;
     const sd = Math.sqrt(varr);
 
-    // speed score: closer to target better; too fast is punished
     const target = 380;
     const dist = Math.abs(mean - target);
-    let speedScore = 1 - clamp(dist/420, 0, 1); // 0..1
+    let speedScore = 1 - clamp(dist/420, 0, 1);
 
-    // too fast penalty
-    const tooFast = mean < 160 ? (160 - mean)/120 : 0; // 0..~1
+    const tooFast = mean < 160 ? (160 - mean)/120 : 0;
     speedScore = speedScore - clamp(tooFast, 0, 1);
 
-    // stability score: lower sd better
-    const stabilityScore = 1 - clamp(sd/220, 0, 1); // 0..1
-
-    // spam penalty: if last interval extremely short
+    const stabilityScore = 1 - clamp(sd/220, 0, 1);
     const last = ms[n-1];
     const spamPenalty = last < 120 ? 0.9 : (last < 160 ? 0.55 : 0);
 
     let score01 = 0.55*speedScore + 0.45*stabilityScore;
     score01 = score01 - spamPenalty;
 
-    // map to -1..+1
-    const score = clamp((score01*2 - 1), -1, 1);
-    return score;
+    return clamp((score01*2 - 1), -1, 1);
   }
 
-  // ===== Game State =====
+  // ===== State =====
   const state = {
     startMoney: 10000,
     money: 10000,
@@ -679,11 +729,10 @@
     maxMoney: 10000,
     minMoney: 10000,
 
-    // new
     bias: 0,             // -1..+1
     rhythm: 0,           // -1..+1
     lastMainAt: 0,
-    intervals: [],       // ms list
+    intervals: []
   };
 
   function setEnabled(on){
@@ -703,10 +752,206 @@
     modeNameEl.textContent = modeLabel[state.mode] || "—";
     biasMeterEl.textContent = state.bias.toFixed(2);
     rhythmMeterEl.textContent = state.rhythm.toFixed(2);
+
+    // chart header
+    chartNowEl.textContent = yen(state.money);
+    const net = moneyInt() - state.startMoney;
+    chartNetEl.textContent = (net>=0?"+":"") + net.toLocaleString("ja-JP");
+    chartNetEl.style.color = net>=0 ? "rgba(125,255,202,.95)" : "rgba(255,77,109,.95)";
   }
 
+  function decayBias(dt){
+    const k = 1.6;
+    state.bias *= Math.exp(-k * dt);
+    if (Math.abs(state.bias) < 0.01) state.bias = 0;
+  }
+
+  function pressThanks(){
+    if (!state.running) return;
+    const now = performance.now();
+    const recently = (now - (pressThanks._last||0)) < 250;
+    pressThanks._last = now;
+    const add = recently ? 0.05 : 0.10;
+    state.bias = clamp(state.bias + add, -1, 1);
+    sfx.thanks();
+    toast("ありがとう…運が少し寄った");
+    pushConfetti(12);
+    showFortuneBar(fortuneLabel.textContent || "吉", undefined, `偏り ${state.bias.toFixed(2)} / リズム ${state.rhythm.toFixed(2)}`);
+    updateTop();
+  }
+
+  function pressHarsh(){
+    if (!state.running) return;
+    const now = performance.now();
+    const recently = (now - (pressHarsh._last||0)) < 250;
+    pressHarsh._last = now;
+    const add = recently ? 0.06 : 0.12;
+    state.bias = clamp(state.bias - add, -1, 1);
+    sfx.harsh();
+    toast("もっと頑張れよ…悪い方へ寄った");
+    pushConfetti(6);
+    showFortuneBar(fortuneLabel.textContent || "凶", undefined, `偏り ${state.bias.toFixed(2)} / リズム ${state.rhythm.toFixed(2)}`);
+    updateTop();
+  }
+
+  function pickFortuneWithLogic(){
+    const baseW = modeWeights[state.mode] || modeWeights.balanced;
+    const w = applyInfluenceToWeights(baseW, state.bias, state.rhythm);
+    return weightedPick(ORDER, w);
+  }
+
+  // ===== 投資アプリ風チャート（リアルタイム線） =====
+  const chart = document.getElementById("moneyChart");
+  const cctx = chart.getContext("2d");
+  const chartDPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+
+  let chartData = []; // {t, v}
+  let gameStartPerf = 0;
+  const CHART_TMAX = 30;
+
+  function resizeChart(){
+    const rect = chart.getBoundingClientRect();
+    const cssW = Math.max(10, rect.width);
+    const cssH = 220;
+    chart.width  = Math.floor(cssW * chartDPR);
+    chart.height = Math.floor(cssH * chartDPR);
+  }
+  window.addEventListener("resize", ()=>{ resizeChart(); drawChart(); });
+
+  function addChartPoint(force=false){
+    const t = state.running ? (performance.now() - gameStartPerf) / 1000 : 0;
+    const v = moneyInt();
+
+    // 投資アプリっぽく “一定間隔”でも点追加したいので force対応
+    // ただし重くしないため、前回と同値で近すぎる場合はスキップ
+    const last = chartData[chartData.length-1];
+    if (!force && last){
+      if (Math.abs(last.v - v) === 0 && (t - last.t) < 0.18) return;
+    }
+    chartData.push({t, v});
+    if (chartData.length > 900) chartData.shift();
+  }
+
+  function niceBounds(minV, maxV){
+    if (minV === maxV) { minV -= 100; maxV += 100; }
+    const range = maxV - minV;
+    const pad = Math.max(120, range * 0.12);
+    return {min: Math.max(0, minV - pad), max: maxV + pad};
+  }
+
+  function drawChart(){
+    const w = chart.width, h = chart.height;
+    cctx.clearRect(0,0,w,h);
+
+    cctx.save();
+    cctx.scale(chartDPR, chartDPR);
+    const W = w / chartDPR, H = h / chartDPR;
+
+    const PAD_L = 52, PAD_R = 10, PAD_T = 10, PAD_B = 20;
+    const x0 = PAD_L, y0 = PAD_T;
+    const x1 = W - PAD_R, y1 = H - PAD_B;
+
+    // background subtle
+    cctx.fillStyle = "rgba(0,0,0,.00)";
+    cctx.fillRect(0,0,W,H);
+
+    if (!chartData.length){
+      cctx.fillStyle = "rgba(232,236,255,.60)";
+      cctx.font = "12px system-ui, -apple-system, Segoe UI, Roboto, Noto Sans JP, sans-serif";
+      cctx.fillText("スタートすると推移が表示される", x0, y0 + 14);
+      cctx.restore();
+      return;
+    }
+
+    const minVraw = Math.min(...chartData.map(p=>p.v));
+    const maxVraw = Math.max(...chartData.map(p=>p.v));
+    const {min:minV, max:maxV} = niceBounds(minVraw, maxVraw);
+
+    const mapX = (t)=> x0 + (t / CHART_TMAX) * (x1 - x0);
+    const mapY = (v)=> y1 - ((v - minV) / (maxV - minV)) * (y1 - y0);
+
+    // grid
+    cctx.strokeStyle = "rgba(255,255,255,.08)";
+    cctx.lineWidth = 1;
+    for (let i=0;i<=3;i++){
+      const yy = y0 + (i/3)*(y1-y0);
+      cctx.beginPath(); cctx.moveTo(x0, yy); cctx.lineTo(x1, yy); cctx.stroke();
+    }
+
+    // Y labels
+    const fmt = (n)=> "¥" + Math.floor(n).toLocaleString("ja-JP");
+    cctx.fillStyle = "rgba(232,236,255,.55)";
+    cctx.font = "12px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace";
+    cctx.fillText(fmt(maxV), 6, y0 + 10);
+    cctx.fillText(fmt((minV+maxV)/2), 6, (y0+y1)/2 + 5);
+    cctx.fillText(fmt(minV), 6, y1);
+
+    // line (investment style: clean)
+    cctx.strokeStyle = "rgba(125,255,202,.92)";
+    cctx.lineWidth = 2;
+
+    cctx.beginPath();
+    let started = false;
+    for (const p of chartData){
+      const tt = Math.max(0, Math.min(CHART_TMAX, p.t));
+      const xx = mapX(tt);
+      const yy = mapY(p.v);
+      if (!started){ cctx.moveTo(xx, yy); started = true; }
+      else cctx.lineTo(xx, yy);
+    }
+    cctx.stroke();
+
+    // last dot + vertical guide
+    const last = chartData[chartData.length - 1];
+    const lt = Math.max(0, Math.min(CHART_TMAX, last.t));
+    const lx = mapX(lt);
+    const ly = mapY(last.v);
+
+    cctx.strokeStyle = "rgba(255,255,255,.10)";
+    cctx.lineWidth = 1;
+    cctx.beginPath(); cctx.moveTo(lx, y0); cctx.lineTo(lx, y1); cctx.stroke();
+
+    cctx.fillStyle = "rgba(255,255,255,.95)";
+    cctx.beginPath(); cctx.arc(lx, ly, 3.5, 0, Math.PI*2); cctx.fill();
+
+    // small value bubble
+    const bubble = fmt(last.v);
+    cctx.font = "12px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace";
+    const tw = cctx.measureText(bubble).width;
+    const bx = Math.min(x1 - (tw+10), Math.max(x0, lx + 8));
+    const by = Math.max(y0 + 12, Math.min(y1 - 10, ly));
+    cctx.fillStyle = "rgba(0,0,0,.35)";
+    cctx.strokeStyle = "rgba(255,255,255,.14)";
+    cctx.lineWidth = 1;
+    cctx.beginPath();
+    cctx.roundRect(bx, by-14, tw+10, 18, 8);
+    cctx.fill();
+    cctx.stroke();
+    cctx.fillStyle = "rgba(232,236,255,.88)";
+    cctx.fillText(bubble, bx+5, by);
+
+    cctx.restore();
+  }
+
+  // roundRect polyfill-ish
+  if (!CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
+      r = Math.min(r, w/2, h/2);
+      this.beginPath();
+      this.moveTo(x+r,y);
+      this.arcTo(x+w,y,x+w,y+h,r);
+      this.arcTo(x+w,y+h,x,y+h,r);
+      this.arcTo(x,y+h,x,y,r);
+      this.arcTo(x,y,x+w,y,r);
+      this.closePath();
+      return this;
+    };
+  }
+
+  // ===== Game control =====
   function resetAll(){
     modalBackdrop.style.display = "none";
+
     state.mode = modeSel.value;
     state.money = state.startMoney;
     state.tLeft = 30.0;
@@ -722,8 +967,14 @@
     state.intervals = [];
 
     setEnabled(false);
-    updateTop();
     showFortuneBar("—", undefined, "偏り 0.00 / リズム 0.00");
+
+    chartData = [];
+    resizeChart();
+    addChartPoint(true);
+    drawChart();
+
+    updateTop();
     toast("準備OK。モード選んでスタート。");
   }
 
@@ -744,8 +995,16 @@
 
     setEnabled(true);
     sfx.boom();
+
     showFortuneBar("吉", 0, "偏り 0.00 / リズム 0.00");
     toast(`開始：所持金 ${yen(state.money)} / モード：${modeLabel[state.mode]}`);
+
+    // chart init
+    gameStartPerf = performance.now();
+    chartData = [];
+    addChartPoint(true);
+    drawChart();
+
     updateTop();
   }
 
@@ -758,55 +1017,9 @@
     showResults();
   }
 
-  function decayBias(dt){
-    // bias naturally decays toward 0 (half-life-ish)
-    const k = 1.6; // larger = faster decay
-    state.bias *= Math.exp(-k * dt);
-    // tiny deadzone
-    if (Math.abs(state.bias) < 0.01) state.bias = 0;
-  }
-
-  function pressThanks(){
-    if (!state.running) return;
-    // gratitude increases bias, but spam reduces effect slightly (feels "雑だと効かない")
-    const now = performance.now();
-    const recently = (now - (pressThanks._last||0)) < 250;
-    pressThanks._last = now;
-
-    const add = recently ? 0.05 : 0.10;
-    state.bias = clamp(state.bias + add, -1, 1);
-    sfx.thanks();
-    toast("ありがとう…運が少し寄った");
-    pushConfetti(16);
-    showFortuneBar(fortuneLabel.textContent || "吉", undefined, `偏り ${state.bias.toFixed(2)} / リズム ${state.rhythm.toFixed(2)}`);
-    updateTop();
-  }
-
-  function pressHarsh(){
-    if (!state.running) return;
-    const now = performance.now();
-    const recently = (now - (pressHarsh._last||0)) < 250;
-    pressHarsh._last = now;
-
-    const add = recently ? 0.06 : 0.12;
-    state.bias = clamp(state.bias - add, -1, 1);
-    sfx.harsh();
-    toast("もっと頑張れよ…運が悪い方へ寄った");
-    pushConfetti(8);
-    showFortuneBar(fortuneLabel.textContent || "凶", undefined, `偏り ${state.bias.toFixed(2)} / リズム ${state.rhythm.toFixed(2)}`);
-    updateTop();
-  }
-
-  function pickFortuneWithLogic(){
-    const baseW = modeWeights[state.mode] || modeWeights.balanced;
-    const w = applyInfluenceToWeights(baseW, state.bias, state.rhythm);
-    return weightedPick(ORDER, w);
-  }
-
   function doDraw(ev){
     if (!state.running) return;
 
-    // measure rhythm based on main button timings
     const now = performance.now();
     if (state.lastMainAt > 0){
       const interval = now - state.lastMainAt;
@@ -824,18 +1037,11 @@
     state.counts[f]++;
 
     const vol = modeVolatility[state.mode] ?? 1.0;
-
     const base = 90 + Math.min(210, state.presses * 1.2);
     let delta = base * (fortuneMult[f]) * vol;
 
-    // spice: when rhythm very good, occasionally upgrade (feels rewarding)
-    if (state.rhythm > 0.70 && (f === "中吉" || f === "小吉") && Math.random() < 0.10) {
-      delta *= 1.25;
-    }
-    // penalty: spammy rhythm -> extra pain on bad
-    if (state.rhythm < -0.65 && (f === "凶" || f === "大凶") && Math.random() < 0.12) {
-      delta *= 1.20;
-    }
+    if (state.rhythm > 0.70 && (f === "中吉" || f === "小吉") && Math.random() < 0.10) delta *= 1.25;
+    if (state.rhythm < -0.65 && (f === "凶" || f === "大凶") && Math.random() < 0.12) delta *= 1.20;
 
     const before = state.money;
     state.money = clamp(state.money + delta, 0, 1e12);
@@ -844,7 +1050,6 @@
     state.maxMoney = Math.max(state.maxMoney, state.money);
     state.minMoney = Math.min(state.minMoney, state.money);
 
-    // show bar with info
     showFortuneBar(f, delta, `偏り ${state.bias.toFixed(2)} / リズム ${state.rhythm.toFixed(2)}`);
 
     // FX
@@ -854,7 +1059,7 @@
     pushRing(x, y);
     pushSparks(x, y, Math.floor(10 + power*12), power);
 
-    if (f === "大吉") pushConfetti(28);
+    if (f === "大吉") pushConfetti(22);
     if (f === "大凶") pushConfetti(10);
 
     if (delta > 0) sfx.good();
@@ -866,9 +1071,12 @@
     spawnFloat(text, x, y, abs >= 3000 ? 28 : 20, color);
 
     if (abs >= 5000) toast(delta > 0 ? "ドカ増え！" : "ドカ減り！");
-    if (before < 10000 && state.money >= 10000) toast("1万円ライン復帰！");
     if (before < 20000 && state.money >= 20000) toast("2万円突破！");
     if (before < 50000 && state.money >= 50000) toast("5万円突破！");
+
+    // chart update
+    addChartPoint(true);
+    drawChart();
 
     updateTop();
   }
@@ -881,7 +1089,18 @@
 
     if (state.running){
       state.tLeft -= dt;
-      decayBias(dt); // attitude bias decays over time
+      decayBias(dt);
+
+      // chart: even without taps, keep time axis moving a bit (investment-like)
+      // add point at low frequency
+      if (!loop._acc) loop._acc = 0;
+      loop._acc += dt;
+      if (loop._acc >= 0.20){
+        loop._acc = 0;
+        addChartPoint(false);
+        drawChart();
+      }
+
       if (state.tLeft <= 0){
         state.tLeft = 0;
         updateTop();
@@ -912,19 +1131,17 @@
     const c = state.counts;
     const good = c["大吉"] + c["中吉"] + c["小吉"];
     const bad  = c["凶"] + c["大凶"];
-    const mid  = c["吉"] + c["末吉"];
     const goodRate = good / total;
     const badRate  = bad  / total;
     const net = moneyInt() - state.startMoney;
     const range = state.maxMoney - state.minMoney;
 
-    // 6 types + incorporate bias/rhythm flavor
-    if (state.rhythm > 0.55 && goodRate > 0.36) return {type:"リズム職人型", advice:"一定のテンポが財運を呼ぶ。今日は“同じ間隔”が武器。"};
+    if (state.rhythm > 0.55 && goodRate > 0.36) return {type:"リズム職人型", advice:"一定テンポが財運を呼ぶ。今日は“同じ間隔”が武器。"};
     if (state.rhythm < -0.55 && badRate > 0.30) return {type:"連打破壊型", advice:"焦りの連打が損を呼ぶ。間を置くと運が戻る。"};
     if (state.bias > 0.35) return {type:"感謝増幅型", advice:"丁寧さが運を上げる。余計な一押しを我慢すると勝てる。"};
     if (state.bias < -0.35) return {type:"自己圧型", advice:"自分を責めると運が落ちる。言葉を優しくすると回る。"};
     if (range >= 25000) return {type:"ジェットコースター型", advice:"増えた直後が危険。『増えたら守る』をルール化すると強い。"};
-    return {type:"堅実積み上げ型", advice:"派手さより継続が勝つ。小さな勝ちを積むと伸びる。"};
+    return {type:"堅実積み上げ型", advice:"派手さより継続。小さな勝ちを積むと伸びる。"};
   }
 
   function showResults(){
@@ -937,7 +1154,7 @@
     resultTitle.textContent = `総合判定：${judge}`;
     const netText = (net >= 0) ? `+${net.toLocaleString("ja-JP")}` : `${net.toLocaleString("ja-JP")}`;
     resultSummary.innerHTML =
-      `<div>開始：<b class="mono">¥10,000</b> ／ 終了：<b class="mono">${yen(final)}</b> ／ 獲得コイン数：<b class="mono">${netText}</b> 円</div>
+      `<div>開始：<b class="mono">¥10,000</b> ／ 終了：<b class="mono">${yen(final)}</b> ／ 獲得：<b class="mono">${netText}</b> 円</div>
        <div>モード：<b>${modeLabel[state.mode]}</b> ／ 回数：<b>${total}</b> ／ 最大：<b class="mono">${yen(state.maxMoney)}</b> ／ 最小：<b class="mono">${yen(state.minMoney)}</b></div>
        <div>最終：偏り <b class="mono">${state.bias.toFixed(2)}</b> ／ リズム <b class="mono">${state.rhythm.toFixed(2)}</b></div>`;
 
@@ -992,8 +1209,9 @@
     startGame();
   });
 
-  // Init
+  // ===== Init =====
   resizeFx();
+  resizeChart();
   requestAnimationFrame(fxLoop);
   resetAll();
   requestAnimationFrame(loop);
