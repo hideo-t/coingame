@@ -3,12 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>財運タイムアタック（1万円→30秒）</title>
+  <title>財運タイムアタック（1万円→30秒）リズム＆態度ロジック版</title>
   <style>
     :root{
-      --bg:#0b0f1a; --panel:#0d1433; --panel2:#0a1028; --line:#22306a;
+      --bg:#0b0f1a; --panel:#0d1433; --line:#22306a;
       --txt:#e8ecff; --muted:rgba(232,236,255,.78);
-      --gold:#ffd43b; --pink:#ff4d6d; --blue:#93b4ff; --mint:#7dffca;
     }
     html,body{height:100%;margin:0;background:var(--bg);color:var(--txt);
       font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans JP",sans-serif;}
@@ -43,17 +42,17 @@
     .tiny{font-size:12px;color:rgba(232,236,255,.72)}
     .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;}
 
-    /* ===== Center area: reserve space for fortuneBar so it never overlaps money ===== */
+    /* reserve space for fortuneBar */
     .center{
       display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center;
-      min-height:440px;
-      padding-top:82px; /* ← fortuneBar分のスペース */
+      min-height:520px;
+      padding-top:82px;
     }
     .moneyBig{font-size:46px;font-weight:1000;letter-spacing:.02em;text-shadow:0 10px 26px rgba(0,0,0,.45)}
     .subRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
 
     .drawBtn{
-      width:min(380px, 78vw);
+      width:min(420px, 84vw);
       padding:18px 18px;
       border-radius:22px;
       background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.18), rgba(0,0,0,0)),
@@ -71,7 +70,21 @@
     .drawBtn:active{transform:scale(.985)}
     .drawBtn.disabled{opacity:.55; pointer-events:none; filter:grayscale(.2);}
 
-    /* ===== Fortune Bar (別表紙) ===== */
+    .sideBtn{
+      width:min(200px, 40vw);
+      padding:14px 12px;
+      border-radius:16px;
+      background:rgba(13,20,51,.78);
+      border:1px solid rgba(34,48,106,.9);
+      box-shadow:0 16px 34px rgba(0,0,0,.28);
+      font-weight:1000;
+    }
+    .sideBtn.good{border-color:rgba(255,120,120,.6)}
+    .sideBtn.bad{border-color:rgba(120,150,180,.55)}
+    .sideBtn.disabled{opacity:.55; pointer-events:none; filter:grayscale(.2);}
+    .smallRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+
+    /* Fortune Bar */
     .fortuneBar{
       position:absolute;
       left:14px; right:14px; top:14px;
@@ -97,13 +110,15 @@
     }
     .fortuneDelta{
       font-weight:900;
-      font-size:18px;
+      font-size:14px;
       color:rgba(232,236,255,.92);
       opacity:.95;
       white-space:nowrap;
+      text-align:right;
+      line-height:1.25;
     }
 
-    /* 大吉ほど赤、凶ほど暗い */
+    /* red for good, dark for bad */
     .fortune-daikichi { background: linear-gradient(90deg, rgba(255,60,60,.55), rgba(0,0,0,.20)); }
     .fortune-chukichi { background: linear-gradient(90deg, rgba(255,110,60,.45), rgba(0,0,0,.20)); }
     .fortune-shokichi { background: linear-gradient(90deg, rgba(255,170,70,.34), rgba(0,0,0,.20)); }
@@ -121,7 +136,7 @@
     .fortune-daikyo   .fortuneLabel{color: rgba(160,160,175,1);}
 
     .toast{
-      position:absolute;left:14px;top:88px; /* ← fortuneBarの下に移動して被らない */
+      position:absolute;left:14px;top:88px;
       background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12);
       padding:8px 10px;border-radius:12px;font-size:13px;
       opacity:0;transform:translateY(-6px);transition:.18s;
@@ -175,7 +190,6 @@
     table{width:100%;border-collapse:collapse;margin-top:10px}
     th,td{border-bottom:1px solid rgba(255,255,255,.10);padding:8px 6px;text-align:left;font-size:13px}
     th{color:rgba(232,236,255,.85)}
-    .resultBig{font-size:26px;font-weight:1000}
     .badge{
       display:inline-block; padding:3px 8px; border-radius:999px;
       border:1px solid rgba(34,48,106,.9);
@@ -184,7 +198,6 @@
     }
     .modalBtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px}
 
-    /* Print style */
     @media print{
       body{background:#fff;color:#000}
       .wrap, .top, .grid, .panel, .actions, .stats, .hint, canvas.fx, .toast, .fortuneBar{display:none !important;}
@@ -206,6 +219,8 @@
       <div class="pill">開始：<b class="mono">¥10,000</b></div>
       <div class="pill">モード：<b id="modeName">未選択</b></div>
       <div class="pill">回数：<b id="presses">0</b></div>
+      <div class="pill">偏り：<b id="biasMeter">0.00</b></div>
+      <div class="pill">リズム：<b id="rhythmMeter">0.00</b></div>
     </div>
     <div class="actions">
       <button id="btnAudio">Audio ON</button>
@@ -217,10 +232,9 @@
     <div class="panel" id="leftPanel">
       <canvas class="fx" id="fx"></canvas>
 
-      <!-- 別表紙：運勢バー（重ならない） -->
       <div class="fortuneBar fortune-kichi" id="fortuneBar">
         <div class="fortuneLabel" id="fortuneLabel">—</div>
-        <div class="fortuneDelta mono" id="fortuneDelta"> </div>
+        <div class="fortuneDelta mono" id="fortuneDelta"></div>
       </div>
 
       <div class="toast" id="toast"></div>
@@ -229,24 +243,30 @@
         <div class="moneyBig mono" id="moneyBig">¥10,000</div>
         <div class="hint">
           30秒で、所持金10,000円をどれだけ増やせるか。<br>
-          「スタート」後、ボタンを押すたびに <b>大吉〜大凶</b> が出て増減するよ。
+          <b>リズム良く押すと大吉寄り</b>。<b>連打＆不安定だと凶寄り</b>。<br>
+          さらに「ありがとう／もっと頑張れよ」で運勢の偏りを操作できる。
         </div>
 
         <div class="drawBtn disabled" id="drawBtn">財運を引く（押す）</div>
+
+        <div class="smallRow">
+          <button class="sideBtn good disabled" id="btnThanks">ありがとう</button>
+          <button class="sideBtn bad disabled" id="btnHarsh">もっと頑張れよ</button>
+        </div>
 
         <div class="subRow">
           <button class="big" id="btnStart">スタート（30秒）</button>
           <button class="big secondary" id="btnEnd">終了（結果）</button>
         </div>
 
-        <div class="tiny">※ 連打しすぎ注意。凶が連続すると普通に削られる。</div>
+        <div class="tiny">※ 「ありがとう」は運を上げるが、連打で雑に押すと逆効果っぽく感じるようにしてある。</div>
       </div>
     </div>
 
     <div class="panel right">
       <div class="card">
         <div class="title">モード選択</div>
-        <div class="tiny">出現確率と増減の振れ幅が変わるよ。</div>
+        <div class="tiny">基本の出やすさと振れ幅が変わる。</div>
         <div class="row">
           <select id="mode">
             <option value="steady">安定（凶が出にくい／増減は小さめ）</option>
@@ -272,35 +292,31 @@
         <div class="hr"></div>
 
         <div class="hint">
-          ルール：<br>
-          ・開始所持金：<b>10,000円</b><br>
-          ・制限時間：<b>30秒</b><br>
-          ・押すたびに結果が出て所持金が増減（0円未満にはならない）<br>
-          ・終了時：各回数＋総合判定＋獲得コイン数＋あなたのタイプ（6種）＋印刷
+          追加ロジック：<br>
+          ・<b>ありがとう</b>：短時間だけ良い方へ寄る（偏り +）<br>
+          ・<b>もっと頑張れよ</b>：短時間だけ悪い方へ寄る（偏り −）<br>
+          ・メインボタンは<b>リズムが安定</b>すると良い方へ寄る／<b>連打＆不安定</b>だと悪い方へ寄る
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Result Modal -->
 <div class="modalBackdrop" id="modalBackdrop">
   <div class="modal">
     <h2>結果</h2>
-    <div class="resultCard" id="resultCard">
-      <div class="resultBig" id="resultTitle">あなたの財運は —</div>
+    <div class="resultCard">
+      <div class="resultBig" id="resultTitle">総合判定：—</div>
       <div id="resultSummary" style="margin-top:6px"></div>
 
       <table>
-        <thead>
-          <tr><th>運勢</th><th>回数</th><th>割合</th></tr>
-        </thead>
+        <thead><tr><th>運勢</th><th>回数</th><th>割合</th></tr></thead>
         <tbody id="countTable"></tbody>
       </table>
 
       <div style="margin-top:10px" id="resultTypeLine"></div>
       <div style="margin-top:6px" id="resultAdviceLine"></div>
-      <div style="margin-top:10px" id="resultThanks">お疲れ様でした。</div>
+      <div style="margin-top:10px">お疲れ様でした。</div>
     </div>
 
     <div class="modalBtns">
@@ -319,9 +335,13 @@
   const moneyBigEl = document.getElementById("moneyBig");
   const pressesEl = document.getElementById("presses");
   const modeNameEl = document.getElementById("modeName");
+  const biasMeterEl = document.getElementById("biasMeter");
+  const rhythmMeterEl = document.getElementById("rhythmMeter");
 
   const leftPanel = document.getElementById("leftPanel");
   const drawBtn = document.getElementById("drawBtn");
+  const btnThanks = document.getElementById("btnThanks");
+  const btnHarsh = document.getElementById("btnHarsh");
   const btnStart = document.getElementById("btnStart");
   const btnEnd = document.getElementById("btnEnd");
   const btnAudio = document.getElementById("btnAudio");
@@ -329,8 +349,6 @@
   const modeSel = document.getElementById("mode");
 
   const toastEl = document.getElementById("toast");
-
-  // fortune bar
   const fortuneBar = document.getElementById("fortuneBar");
   const fortuneLabel = document.getElementById("fortuneLabel");
   const fortuneDelta = document.getElementById("fortuneDelta");
@@ -349,7 +367,6 @@
   let audioCtx = null;
   let audioUnlocked = false;
   let muted = false;
-
   function ensureAudio(){
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === "suspended") audioCtx.resume();
@@ -376,7 +393,9 @@
     good(){ beep({freq: 659, dur:0.08, type:"triangle", gain:0.06}); beep({freq: 880, dur:0.10, type:"triangle", gain:0.06, when:0.08}); },
     bad(){  beep({freq: 180, dur:0.10, type:"sawtooth", gain:0.05, slide:-60}); },
     boom(){ beep({freq: 220, dur:0.12, type:"sawtooth", gain:0.06, slide:-120}); beep({freq: 440, dur:0.10, type:"triangle", gain:0.05, when:0.06}); },
-    end(){  beep({freq: 784, dur:0.10, type:"triangle", gain:0.06}); beep({freq: 659, dur:0.10, type:"triangle", gain:0.06, when:0.11}); beep({freq: 523, dur:0.12, type:"triangle", gain:0.06, when:0.22}); }
+    end(){  beep({freq: 784, dur:0.10, type:"triangle", gain:0.06}); beep({freq: 659, dur:0.10, type:"triangle", gain:0.06, when:0.11}); beep({freq: 523, dur:0.12, type:"triangle", gain:0.06, when:0.22}); },
+    thanks(){ beep({freq: 523, dur:0.07, type:"triangle", gain:0.06}); beep({freq: 659, dur:0.08, type:"triangle", gain:0.06, when:0.07}); },
+    harsh(){ beep({freq: 220, dur:0.08, type:"sawtooth", gain:0.05}); }
   };
 
   // ===== FX Canvas =====
@@ -385,10 +404,8 @@
   const DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
   const particles = [];
   const rings = [];
-
   function rand(a,b){ return a + Math.random()*(b-a); }
   function hsl(h,s,l,a=1){ return `hsla(${h},${s}%,${l}%,${a})`; }
-
   function resizeFx(){
     const r = leftPanel.getBoundingClientRect();
     fx.width = Math.floor(r.width * DPR);
@@ -437,12 +454,9 @@
   function pushRing(x,y){
     rings.push({x,y,r:10,vr:520,life:0.55,t:0,color:hsl(rand(0,360),95,62,0.75)});
   }
-
   function fxLoop(now){
-    const w = fx.width, h = fx.height;
-    fctx.clearRect(0,0,w,h);
+    fctx.clearRect(0,0,fx.width,fx.height);
     fctx.save(); fctx.scale(DPR,DPR);
-
     const dt = Math.min(0.033, (fxLoop._last ? (now - fxLoop._last)/1000 : 0.016));
     fxLoop._last = now;
 
@@ -504,7 +518,7 @@
     setTimeout(()=>el.remove(), 1000);
   }
 
-  // ===== Fortune Bar helpers =====
+  // ===== Fortune Bar =====
   function fortuneClass(name){
     return {
       "大吉":"fortune-daikichi",
@@ -516,7 +530,7 @@
       "大凶":"fortune-daikyo",
     }[name] || "fortune-kichi";
   }
-  function showFortuneBar(name, delta){
+  function showFortuneBar(name, delta, infoLine=""){
     fortuneBar.classList.remove(
       "fortune-daikichi","fortune-chukichi","fortune-shokichi",
       "fortune-kichi","fortune-suekichi","fortune-kyo","fortune-daikyo"
@@ -524,12 +538,12 @@
     fortuneBar.classList.add(fortuneClass(name));
     fortuneLabel.textContent = name;
 
+    let line1 = "";
     if (typeof delta === "number"){
       const sign = delta >= 0 ? "+" : "−";
-      fortuneDelta.textContent = `${sign}¥${Math.floor(Math.abs(delta)).toLocaleString("ja-JP")}`;
-    } else {
-      fortuneDelta.textContent = "";
+      line1 = `${sign}¥${Math.floor(Math.abs(delta)).toLocaleString("ja-JP")}`;
     }
+    fortuneDelta.innerHTML = `${line1}${infoLine ? "<br>"+infoLine : ""}`;
 
     fortuneBar.animate(
       [{transform:"scale(1)", filter:"brightness(1)"},
@@ -541,17 +555,8 @@
 
   // ===== Fortune System =====
   const ORDER = ["大吉","中吉","小吉","吉","末吉","凶","大凶"];
-  const fortuneMeta = {
-    "大吉": {tone:"good"},
-    "中吉": {tone:"good"},
-    "小吉": {tone:"good"},
-    "吉":   {tone:"mid"},
-    "末吉": {tone:"mid"},
-    "凶":   {tone:"bad"},
-    "大凶": {tone:"bad"},
-  };
 
-  // order: 大吉,中吉,小吉,吉,末吉,凶,大凶
+  // baseline mode weights (order same as ORDER)
   const modeWeights = {
     steady:   [10, 14, 18, 22, 22, 10,  4],
     balanced: [ 9, 12, 16, 22, 22, 12,  7],
@@ -559,6 +564,7 @@
   };
   const modeLabel = { steady:"安定", balanced:"バランス", risky:"博打" };
 
+  // money delta strength
   const fortuneMult = {
     "大吉": +12,
     "中吉": +7,
@@ -570,19 +576,98 @@
   };
   const modeVolatility = { steady:0.85, balanced:1.0, risky:1.25 };
 
-  function pickFortune(mode){
-    const w = modeWeights[mode] || modeWeights.balanced;
-    const total = w.reduce((a,b)=>a+b,0);
+  // ===== New: Bias (attitude) + Rhythm influence =====
+  // bias: -1..+1 (ありがとうで+、もっと頑張れよで-). time-decays.
+  // rhythm: -1..+1 (安定で+、連打/不安定で-). computed from recent intervals.
+  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+
+  function weightedPick(names, weights){
+    const total = weights.reduce((a,b)=>a+b,0);
     let r = Math.random()*total;
-    for (let i=0;i<w.length;i++){
-      r -= w[i];
-      if (r<=0) return ORDER[i];
+    for (let i=0;i<weights.length;i++){
+      r -= weights[i];
+      if (r<=0) return names[i];
     }
-    return ORDER[3];
+    return names[names.length-1];
+  }
+
+  function applyInfluenceToWeights(baseW, bias, rhythm){
+    // baseW array length 7
+    // bias(+): push toward good (index 0..2). bias(-): push toward bad (index 5..6)
+    // rhythm(+): push toward good. rhythm(-): push toward bad.
+    // effect strength is moderate so it "feels" but not deterministic.
+    const w = baseW.slice();
+
+    // combine influence
+    const influ = clamp(0.55*bias + 0.75*rhythm, -1, 1); // rhythm stronger than attitude
+    const goodBoost = Math.max(0, influ);
+    const badBoost  = Math.max(0, -influ);
+
+    // good side: indices 0,1,2; bad: 5,6; mid: 3,4
+    // boost distribution
+    w[0] *= (1 + 0.85*goodBoost);
+    w[1] *= (1 + 0.55*goodBoost);
+    w[2] *= (1 + 0.35*goodBoost);
+
+    // mid slightly reduced when goodBoost high (keeps total consistent-ish)
+    w[3] *= (1 - 0.18*goodBoost);
+    w[4] *= (1 - 0.10*goodBoost);
+
+    // bad amplified when badBoost
+    w[5] *= (1 + 0.70*badBoost);
+    w[6] *= (1 + 1.10*badBoost);
+
+    // when badBoost, reduce good a bit
+    w[0] *= (1 - 0.22*badBoost);
+    w[1] *= (1 - 0.18*badBoost);
+    w[2] *= (1 - 0.12*badBoost);
+
+    // avoid collapse
+    for (let i=0;i<w.length;i++) w[i] = Math.max(0.5, w[i]);
+
+    return w;
+  }
+
+  // rhythm scoring:
+  // target interval ~ 380ms (comfortable rhythm)
+  // too fast (<160ms) => bad
+  // unstable (high variance) => bad
+  function computeRhythmScore(intervals){
+    if (intervals.length < 4) return 0;
+
+    const ms = intervals.slice(-8); // last up to 8
+    const n = ms.length;
+    const mean = ms.reduce((a,b)=>a+b,0)/n;
+
+    // variance
+    const varr = ms.reduce((a,b)=>a+(b-mean)*(b-mean),0)/n;
+    const sd = Math.sqrt(varr);
+
+    // speed score: closer to target better; too fast is punished
+    const target = 380;
+    const dist = Math.abs(mean - target);
+    let speedScore = 1 - clamp(dist/420, 0, 1); // 0..1
+
+    // too fast penalty
+    const tooFast = mean < 160 ? (160 - mean)/120 : 0; // 0..~1
+    speedScore = speedScore - clamp(tooFast, 0, 1);
+
+    // stability score: lower sd better
+    const stabilityScore = 1 - clamp(sd/220, 0, 1); // 0..1
+
+    // spam penalty: if last interval extremely short
+    const last = ms[n-1];
+    const spamPenalty = last < 120 ? 0.9 : (last < 160 ? 0.55 : 0);
+
+    let score01 = 0.55*speedScore + 0.45*stabilityScore;
+    score01 = score01 - spamPenalty;
+
+    // map to -1..+1
+    const score = clamp((score01*2 - 1), -1, 1);
+    return score;
   }
 
   // ===== Game State =====
-  const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
   const state = {
     startMoney: 10000,
     money: 10000,
@@ -591,14 +676,20 @@
     presses: 0,
     mode: "balanced",
     counts: Object.fromEntries(ORDER.map(k=>[k,0])),
-    goodCount: 0,
-    badCount: 0,
     maxMoney: 10000,
-    minMoney: 10000
+    minMoney: 10000,
+
+    // new
+    bias: 0,             // -1..+1
+    rhythm: 0,           // -1..+1
+    lastMainAt: 0,
+    intervals: [],       // ms list
   };
 
-  function setDrawEnabled(on){
+  function setEnabled(on){
     drawBtn.classList.toggle("disabled", !on);
+    btnThanks.classList.toggle("disabled", !on);
+    btnHarsh.classList.toggle("disabled", !on);
   }
 
   function moneyInt(){ return Math.floor(state.money + 1e-9); }
@@ -610,6 +701,8 @@
     moneyBigEl.textContent = yen(state.money);
     pressesEl.textContent = String(state.presses);
     modeNameEl.textContent = modeLabel[state.mode] || "—";
+    biasMeterEl.textContent = state.bias.toFixed(2);
+    rhythmMeterEl.textContent = state.rhythm.toFixed(2);
   }
 
   function resetAll(){
@@ -620,14 +713,17 @@
     state.running = false;
     state.presses = 0;
     state.counts = Object.fromEntries(ORDER.map(k=>[k,0]));
-    state.goodCount = 0;
-    state.badCount = 0;
     state.maxMoney = state.startMoney;
     state.minMoney = state.startMoney;
 
-    setDrawEnabled(false);
+    state.bias = 0;
+    state.rhythm = 0;
+    state.lastMainAt = 0;
+    state.intervals = [];
+
+    setEnabled(false);
     updateTop();
-    showFortuneBar("—");
+    showFortuneBar("—", undefined, "偏り 0.00 / リズム 0.00");
     toast("準備OK。モード選んでスタート。");
   }
 
@@ -638,14 +734,17 @@
     state.running = true;
     state.presses = 0;
     state.counts = Object.fromEntries(ORDER.map(k=>[k,0]));
-    state.goodCount = 0;
-    state.badCount = 0;
     state.maxMoney = state.startMoney;
     state.minMoney = state.startMoney;
 
-    setDrawEnabled(true);
+    state.bias = 0;
+    state.rhythm = 0;
+    state.lastMainAt = 0;
+    state.intervals = [];
+
+    setEnabled(true);
     sfx.boom();
-    showFortuneBar("吉"); // 開始時の雰囲気
+    showFortuneBar("吉", 0, "偏り 0.00 / リズム 0.00");
     toast(`開始：所持金 ${yen(state.money)} / モード：${modeLabel[state.mode]}`);
     updateTop();
   }
@@ -653,33 +752,91 @@
   function endGame(){
     if (!state.running) { showResults(); return; }
     state.running = false;
-    setDrawEnabled(false);
+    setEnabled(false);
     sfx.end();
     toast("結果を表示するよ。");
     showResults();
   }
 
+  function decayBias(dt){
+    // bias naturally decays toward 0 (half-life-ish)
+    const k = 1.6; // larger = faster decay
+    state.bias *= Math.exp(-k * dt);
+    // tiny deadzone
+    if (Math.abs(state.bias) < 0.01) state.bias = 0;
+  }
+
+  function pressThanks(){
+    if (!state.running) return;
+    // gratitude increases bias, but spam reduces effect slightly (feels "雑だと効かない")
+    const now = performance.now();
+    const recently = (now - (pressThanks._last||0)) < 250;
+    pressThanks._last = now;
+
+    const add = recently ? 0.05 : 0.10;
+    state.bias = clamp(state.bias + add, -1, 1);
+    sfx.thanks();
+    toast("ありがとう…運が少し寄った");
+    pushConfetti(16);
+    showFortuneBar(fortuneLabel.textContent || "吉", undefined, `偏り ${state.bias.toFixed(2)} / リズム ${state.rhythm.toFixed(2)}`);
+    updateTop();
+  }
+
+  function pressHarsh(){
+    if (!state.running) return;
+    const now = performance.now();
+    const recently = (now - (pressHarsh._last||0)) < 250;
+    pressHarsh._last = now;
+
+    const add = recently ? 0.06 : 0.12;
+    state.bias = clamp(state.bias - add, -1, 1);
+    sfx.harsh();
+    toast("もっと頑張れよ…運が悪い方へ寄った");
+    pushConfetti(8);
+    showFortuneBar(fortuneLabel.textContent || "凶", undefined, `偏り ${state.bias.toFixed(2)} / リズム ${state.rhythm.toFixed(2)}`);
+    updateTop();
+  }
+
+  function pickFortuneWithLogic(){
+    const baseW = modeWeights[state.mode] || modeWeights.balanced;
+    const w = applyInfluenceToWeights(baseW, state.bias, state.rhythm);
+    return weightedPick(ORDER, w);
+  }
+
   function doDraw(ev){
     if (!state.running) return;
+
+    // measure rhythm based on main button timings
+    const now = performance.now();
+    if (state.lastMainAt > 0){
+      const interval = now - state.lastMainAt;
+      state.intervals.push(interval);
+      if (state.intervals.length > 14) state.intervals.shift();
+    }
+    state.lastMainAt = now;
+    state.rhythm = computeRhythmScore(state.intervals);
 
     const rectPanel = leftPanel.getBoundingClientRect();
     const x = (ev?.clientX ?? (rectPanel.left + rectPanel.width/2)) - rectPanel.left;
     const y = (ev?.clientY ?? (rectPanel.top  + rectPanel.height*0.52)) - rectPanel.top;
 
-    const f = pickFortune(state.mode);
+    const f = pickFortuneWithLogic();
     state.counts[f]++;
 
     const vol = modeVolatility[state.mode] ?? 1.0;
 
-    // pressが増えるほどちょっとだけ刺激増
     const base = 90 + Math.min(210, state.presses * 1.2);
     let delta = base * (fortuneMult[f]) * vol;
 
-    // risky spice
-    if (state.mode === "risky" && f === "大吉" && Math.random() < 0.08) delta *= 2.2;
-    if (state.mode === "risky" && f === "大凶" && Math.random() < 0.06) delta *= 1.8;
+    // spice: when rhythm very good, occasionally upgrade (feels rewarding)
+    if (state.rhythm > 0.70 && (f === "中吉" || f === "小吉") && Math.random() < 0.10) {
+      delta *= 1.25;
+    }
+    // penalty: spammy rhythm -> extra pain on bad
+    if (state.rhythm < -0.65 && (f === "凶" || f === "大凶") && Math.random() < 0.12) {
+      delta *= 1.20;
+    }
 
-    // apply
     const before = state.money;
     state.money = clamp(state.money + delta, 0, 1e12);
     state.presses++;
@@ -687,12 +844,8 @@
     state.maxMoney = Math.max(state.maxMoney, state.money);
     state.minMoney = Math.min(state.minMoney, state.money);
 
-    const meta = fortuneMeta[f];
-    const isGood = meta.tone === "good";
-    const isBad = meta.tone === "bad";
-
-    // bar (別表紙表示)
-    showFortuneBar(f, delta);
+    // show bar with info
+    showFortuneBar(f, delta, `偏り ${state.bias.toFixed(2)} / リズム ${state.rhythm.toFixed(2)}`);
 
     // FX
     sfx.tap();
@@ -704,12 +857,12 @@
     if (f === "大吉") pushConfetti(28);
     if (f === "大凶") pushConfetti(10);
 
-    if (isGood) sfx.good();
-    if (isBad)  sfx.bad();
+    if (delta > 0) sfx.good();
+    if (delta < 0) sfx.bad();
 
     const sign = delta >= 0 ? "+" : "−";
     const text = `${sign}${yen(abs)}`;
-    const color = isBad ? "rgba(255,77,109,1)" : isGood ? "rgba(125,255,202,1)" : "rgba(255,212,59,1)";
+    const color = delta < 0 ? "rgba(255,77,109,1)" : "rgba(125,255,202,1)";
     spawnFloat(text, x, y, abs >= 3000 ? 28 : 20, color);
 
     if (abs >= 5000) toast(delta > 0 ? "ドカ増え！" : "ドカ減り！");
@@ -728,6 +881,7 @@
 
     if (state.running){
       state.tLeft -= dt;
+      decayBias(dt); // attitude bias decays over time
       if (state.tLeft <= 0){
         state.tLeft = 0;
         updateTop();
@@ -739,12 +893,11 @@
     requestAnimationFrame(loop);
   }
 
-  // ===== Result / Type logic =====
+  // ===== Results =====
   function pct(n, total){
     if (!total) return "0%";
     return Math.round((n/total)*100) + "%";
   }
-
   function judgeTotal(net){
     if (net >= 40000) return "宇宙級（爆増）";
     if (net >= 20000) return "大勝ち";
@@ -754,27 +907,24 @@
     if (net >= -15000)return "負け";
     return "大負け";
   }
-
   function decideType(){
     const total = state.presses || 1;
     const c = state.counts;
-
     const good = c["大吉"] + c["中吉"] + c["小吉"];
     const bad  = c["凶"] + c["大凶"];
     const mid  = c["吉"] + c["末吉"];
-
     const goodRate = good / total;
     const badRate  = bad  / total;
-
     const net = moneyInt() - state.startMoney;
     const range = state.maxMoney - state.minMoney;
 
-    if (goodRate >= 0.45 && net > 0) return {type:"強運ブースト型", advice:"良い流れの時ほど雑な判断が増える。最後に確認を1回入れると財運が伸びる。"};
-    if (badRate >= 0.35 && net < 0)  return {type:"厄回収型", advice:"凶が出た後にムキになると削られやすい。3回深呼吸してから再開が吉。"};
-    if (range >= 25000)              return {type:"ジェットコースター型", advice:"増えた直後が危険。『増えたら守る』のルールを先に決めると強い。"};
-    if (mid/total >= 0.55)           return {type:"堅実積み上げ型", advice:"派手さより継続が勝つ。少額を積む習慣に最適。"};
-    if (total >= 120)                return {type:"連打職人型", advice:"集中力が武器。ただし疲れで判断が荒れやすい。短い休憩を挟むと伸びる。"};
-    return {type:"一発狙い型", advice:"少ない手数で勝ちに行くタイプ。良い目が出たら欲張りすぎず確定させると勝ちやすい。"};
+    // 6 types + incorporate bias/rhythm flavor
+    if (state.rhythm > 0.55 && goodRate > 0.36) return {type:"リズム職人型", advice:"一定のテンポが財運を呼ぶ。今日は“同じ間隔”が武器。"};
+    if (state.rhythm < -0.55 && badRate > 0.30) return {type:"連打破壊型", advice:"焦りの連打が損を呼ぶ。間を置くと運が戻る。"};
+    if (state.bias > 0.35) return {type:"感謝増幅型", advice:"丁寧さが運を上げる。余計な一押しを我慢すると勝てる。"};
+    if (state.bias < -0.35) return {type:"自己圧型", advice:"自分を責めると運が落ちる。言葉を優しくすると回る。"};
+    if (range >= 25000) return {type:"ジェットコースター型", advice:"増えた直後が危険。『増えたら守る』をルール化すると強い。"};
+    return {type:"堅実積み上げ型", advice:"派手さより継続が勝つ。小さな勝ちを積むと伸びる。"};
   }
 
   function showResults(){
@@ -788,18 +938,16 @@
     const netText = (net >= 0) ? `+${net.toLocaleString("ja-JP")}` : `${net.toLocaleString("ja-JP")}`;
     resultSummary.innerHTML =
       `<div>開始：<b class="mono">¥10,000</b> ／ 終了：<b class="mono">${yen(final)}</b> ／ 獲得コイン数：<b class="mono">${netText}</b> 円</div>
-       <div>モード：<b>${modeLabel[state.mode]}</b> ／ 引いた回数：<b>${total}</b> 回 ／ 最大：<b class="mono">${yen(state.maxMoney)}</b> ／ 最小：<b class="mono">${yen(state.minMoney)}</b></div>`;
+       <div>モード：<b>${modeLabel[state.mode]}</b> ／ 回数：<b>${total}</b> ／ 最大：<b class="mono">${yen(state.maxMoney)}</b> ／ 最小：<b class="mono">${yen(state.minMoney)}</b></div>
+       <div>最終：偏り <b class="mono">${state.bias.toFixed(2)}</b> ／ リズム <b class="mono">${state.rhythm.toFixed(2)}</b></div>`;
 
     countTable.innerHTML = "";
     for (const name of ORDER){
       const n = state.counts[name] || 0;
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td><span class="badge">${name}</span></td>
-                      <td>${n}</td>
-                      <td>${pct(n, total)}</td>`;
+      tr.innerHTML = `<td><span class="badge">${name}</span></td><td>${n}</td><td>${pct(n, total)}</td>`;
       countTable.appendChild(tr);
     }
-
     resultTypeLine.innerHTML = `あなたのタイプ：<b>${t.type}</b> です`;
     resultAdviceLine.textContent = `注意：${t.advice}`;
     modalBackdrop.style.display = "flex";
@@ -832,6 +980,9 @@
 
   drawBtn.addEventListener("click", (e)=>doDraw(e));
   drawBtn.addEventListener("touchstart", (e)=>{ doDraw(e.touches[0]); }, {passive:true});
+
+  btnThanks.addEventListener("click", ()=>pressThanks());
+  btnHarsh.addEventListener("click", ()=>pressHarsh());
 
   btnClose.addEventListener("click", ()=>{ modalBackdrop.style.display="none"; });
   btnPrint.addEventListener("click", ()=>{ window.print(); });
